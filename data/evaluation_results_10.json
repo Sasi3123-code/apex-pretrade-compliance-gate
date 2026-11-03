@@ -1,12 +1,25 @@
 {
-  "benchmark_timestamp": "2026-10-31T21:48:30Z",
-  "metrics": {
+  "benchmark_timestamp": "2026-11-03T09:08:24Z",
+  "evaluation_methodology": {
+    "baseline_type": "Rule-Based Ticket-Only Baseline (Basic Single-Ticket Checker)",
+    "baseline_description": "Programmatic checker evaluating isolated tickets against direct holdings without parent security-master aggregation, split-rating tie-breakers, or footnote reading.",
+    "tested_architecture": "4-Node Stateful Hybrid Orchestrator (BM25/Graph + Exact Python Engine + LLM Semantic Analyzer + Grounding Safety Critic)",
     "total_test_cases": 10,
-    "naive_single_llm_accuracy": "5/10 (50%)",
+    "total_order_flow_usd": 10700000.0,
+    "live_openrouter_api_enabled": true
+  },
+  "metrics": {
+    "ticket_only_baseline_accuracy": "5/10 (50%)",
     "node3_llm_with_context_accuracy": "10/10 (100%)",
     "hybrid_4node_architecture_accuracy": "10/10 (100%)",
     "critic_interventions_count": 0,
-    "fallback_grounding_count": 4
+    "fallback_grounding_count": 6,
+    "reconciled_financial_breakdown": {
+      "incremental_realized_savings_usd": 184500.0,
+      "ambiguous_exposure_held_for_cco_usd": 93000.0,
+      "baseline_protection_caught_by_both_usd": 98000.0,
+      "grand_total_protection_across_suite_usd": 375500.0
+    }
   },
   "results": [
     {
@@ -16,9 +29,11 @@
       "expected_verdict": "PASS",
       "expected_primary_clause": "Section 3.01(a)",
       "ground_truth_rationale": "Post-trade exposure to PAR-MSFT is $4.30M (4.30% of NAV <= 5.00%). Technology sector is 13.65% (<= 25.00%). Investment Grade.",
-      "naive_single_llm_verdict": "PASS",
-      "naive_single_llm_reason": "Trade size is 1.20% of NAV, investment grade (AAA), USD. (LLM Note: A naive LLM without the parent-group aggregator and split-rating rule might miss the Section 1.04 requirement to aggregate the ultimate_parent_id (PAR-MSFT) with the issuer, potentially miscalculating the combined exposure as 3.10% instead of the correct 4.30% NAV.)",
-      "naive_single_llm_correct": true,
+      "attribution_category": "COMPLIANT_ORDER",
+      "incremental_attribution_value": "$0 (Both Pass)",
+      "ticket_only_baseline_verdict": "PASS",
+      "ticket_only_baseline_reason": "Basic ticket-only checks passed (direct: 4.30%, rating: AAA/Aaa).",
+      "ticket_only_baseline_correct": true,
       "node3_raw_llm_verdict": "PASS",
       "node3_raw_llm_correct": true,
       "hybrid_final_verdict": "PASS",
@@ -30,8 +45,8 @@
       "fallback_grounding_applied": false,
       "verified_char_span": "2978..3048",
       "verified_quote_snippet": "No proposed purchase may cause the Fund's total exposure to any single issuer to exceed 5.00% of total Fund NAV on a post-trade basis.",
-      "llm_model_used": "liquid/lfm-2.5-2.6b:free",
-      "llm_latency_ms": 7536.1,
+      "llm_model_used": "nvidia/nemotron-3.5-super-vl:free",
+      "llm_latency_ms": 30706.3,
       "full_state": {
         "test_id": "TC-01",
         "proposed_trade": {
@@ -55,7 +70,7 @@
         "trace_log": [
           {
             "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
-            "latency_ms": 0.74,
+            "latency_ms": 0.95,
             "clauses_retrieved": [
               "Section 3.01",
               "Section 1.04",
@@ -67,7 +82,7 @@
           },
           {
             "node": "Node 2: Schema-Pruned Deterministic Calculator",
-            "latency_ms": 0.12,
+            "latency_ms": 0.18,
             "deterministic_status": "PASS",
             "breach_clauses": [],
             "escalation_clauses": [],
@@ -75,14 +90,14 @@
           },
           {
             "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
-            "model": "liquid/lfm-2.5-2.6b:free",
-            "latency_ms": 7536.1,
+            "model": "nvidia/nemotron-3.5-super-vl:free",
+            "latency_ms": 30706.3,
             "llm_verdict": "PASS",
             "llm_primary_clause": "Section 3.01(a)"
           },
           {
             "node": "Node 4: Grounding & Asymmetric Safety Critic",
-            "latency_ms": 3.25,
+            "latency_ms": 668.94,
             "final_verdict": "PASS",
             "final_primary_clause": "Section 3.01(a)",
             "critic_intervened": false,
@@ -243,16 +258,16 @@
         "llm_raw_output": {
           "llm_verdict": "PASS",
           "naive_single_prompt_verdict_without_rules_engine": "PASS",
-          "naive_single_prompt_flaw": "A naive LLM without the parent-group aggregator and split-rating rule might miss the Section 1.04 requirement to aggregate the ultimate_parent_id (PAR-MSFT) with the issuer, potentially miscalculating the combined exposure as 3.10% instead of the correct 4.30% NAV.",
+          "naive_single_prompt_flaw": "A naive LLM might overlook parent-subsidiary aggregation, misapply split-rating precedence, or miss SPV/synthetic swap opacity in prospectus notes, causing it to approve trades that breach concentration, credit quality, or look-through limits.",
           "primary_clause": "Section 3.01(a)",
           "verbatim_quote": "No proposed purchase may cause the Fund's total exposure to any single issuer to exceed 5.00% of total Fund NAV on a post-trade basis.",
           "qualitative_ambiguity_detected": false,
-          "semantic_analysis": "The deterministic engine confirms the trade stays within the 5.00% single-issuer concentration limit, with post-trade exposure at 4.30% NAV. The prospectus supplement notes are clear and straightforward, with no thermal coal freight/transport infrastructure or orphan SPV concerns. All quantitative and qualitative checks pass, indicating full compliance."
+          "semantic_analysis": "Deterministic results show post-trade Microsoft Corp exposure at 4.30% NAV, within the 5.00% single-issuer and parent-aggregation limits, with all quantitative screens passing. The prospectus supplement notes describe standard senior unsecured Microsoft Corp notes with no undisclosed coal freight/transport infrastructure or orphan SPV/synthetic swap opacity, so Sections 5.01(b) and 5.02 present no qualitative ambiguity."
         },
-        "llm_model_used": "liquid/lfm-2.5-2.6b:free",
-        "llm_latency_ms": 7536.1,
+        "llm_model_used": "nvidia/nemotron-3.5-super-vl:free",
+        "llm_latency_ms": 30706.3,
         "naive_llm_verdict": "PASS",
-        "naive_llm_rationale": "A naive LLM without the parent-group aggregator and split-rating rule might miss the Section 1.04 requirement to aggregate the ultimate_parent_id (PAR-MSFT) with the issuer, potentially miscalculating the combined exposure as 3.10% instead of the correct 4.30% NAV.",
+        "naive_llm_rationale": "A naive LLM might overlook parent-subsidiary aggregation, misapply split-rating precedence, or miss SPV/synthetic swap opacity in prospectus notes, causing it to approve trades that breach concentration, credit quality, or look-through limits.",
         "critic_verification": {
           "verbatim_quote_verified": true,
           "fallback_grounding_applied": false,
@@ -266,7 +281,7 @@
         },
         "final_verdict": "PASS",
         "final_primary_clause": "Section 3.01(a)",
-        "final_audit_rationale": "[Section 3.01(a) -> PASS] Direct exposure to Microsoft Corp (ISS-MSFT) moves from 3.10% to 4.30% of NAV (Limit: 5.00%). | [Section 3.01(b) -> PASS] Aggregated group exposure under ultimate_parent_id=PAR-MSFT (Microsoft Corp) moves from 3.10% to 4.30% of NAV per Section 1.04 & Section 3.01(b). | [Section 2.01 -> PASS] Both agencies rate Investment Grade (S&P AAA, Moody's Aaa) per Section 2.02(a). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%). || LLM Semantic Note: The deterministic engine confirms the trade stays within the 5.00% single-issuer concentration limit, with post-trade exposure at 4.30% NAV. The prospectus supplement notes are clear and straightforward, with no thermal coal freight/transport infrastructure or orphan SPV concerns. All quantitative and qualitative checks pass, indicating full compliance. || Source Provenance: IPS-APEX-2026-V4 [Section 3.01(a), chars 2978..3048]",
+        "final_audit_rationale": "[Section 3.01(a) -> PASS] Direct exposure to Microsoft Corp (ISS-MSFT) moves from 3.10% to 4.30% of NAV (Limit: 5.00%). | [Section 3.01(b) -> PASS] Aggregated group exposure under ultimate_parent_id=PAR-MSFT (Microsoft Corp) moves from 3.10% to 4.30% of NAV per Section 1.04 & Section 3.01(b). | [Section 2.01 -> PASS] Both agencies rate Investment Grade (S&P AAA, Moody's Aaa) per Section 2.02(a). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%). || LLM Semantic Note: Deterministic results show post-trade Microsoft Corp exposure at 4.30% NAV, within the 5.00% single-issuer and parent-aggregation limits, with all quantitative screens passing. The prospectus supplement notes describe standard senior unsecured Microsoft Corp notes with no undisclosed coal freight/transport infrastructure or orphan SPV/synthetic swap opacity, so Sections 5.01(b) and 5.02 present no qualitative ambiguity. || Source Provenance: IPS-APEX-2026-V4 [Section 3.01(a), chars 2978..3048]",
         "human_review_required": false
       }
     },
@@ -277,9 +292,11 @@
       "expected_verdict": "BREACH",
       "expected_primary_clause": "Section 3.01(a)",
       "ground_truth_rationale": "Breaches Section 3.01(a): Post-trade exposure to Apple Inc reaches 5.45% of NAV ($5,450,000 / $100,000,000), exceeding the 5.00% Single-Issuer limit by 45 bps.",
-      "naive_single_llm_verdict": "BREACH",
-      "naive_single_llm_reason": "Existing Apple position (4.20%) + 1.25% trade = 5.45% > 5.00% limit. (LLM Note: A naive LLM would likely evaluate only the credit quality and currency hedging dimensions, concluding PASS because Apple is investment-grade and the security is USD-denominated, while failing to apply the parent-subsidiary aggregation rule or the single-issuer concentration limit that both independently breach at 5.45% vs. the 5.00% threshold.)",
-      "naive_single_llm_correct": true,
+      "attribution_category": "BASELINE_BREACH_CAUGHT_BY_BOTH",
+      "incremental_attribution_value": "$0 Incremental (Both Block)",
+      "ticket_only_baseline_verdict": "BREACH",
+      "ticket_only_baseline_reason": "Direct issuer 'ISS-AAPL' exceeds 5.00% cap (5.45% of NAV).",
+      "ticket_only_baseline_correct": true,
       "node3_raw_llm_verdict": "BREACH",
       "node3_raw_llm_correct": true,
       "hybrid_final_verdict": "BREACH",
@@ -291,8 +308,8 @@
       "fallback_grounding_applied": false,
       "verified_char_span": "2978..3048",
       "verified_quote_snippet": "No proposed purchase may cause the Fund's total exposure to any single issuer to exceed 5.00% of total Fund NAV on a post-trade basis.",
-      "llm_model_used": "xingchen-agi/xing4.0-29b-a4b:free",
-      "llm_latency_ms": 26379.2,
+      "llm_model_used": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "llm_latency_ms": 137082.0,
       "full_state": {
         "test_id": "TC-02",
         "proposed_trade": {
@@ -316,7 +333,7 @@
         "trace_log": [
           {
             "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
-            "latency_ms": 1.23,
+            "latency_ms": 1.35,
             "clauses_retrieved": [
               "Section 3.01",
               "Section 1.04",
@@ -328,7 +345,7 @@
           },
           {
             "node": "Node 2: Schema-Pruned Deterministic Calculator",
-            "latency_ms": 0.34,
+            "latency_ms": 0.26,
             "deterministic_status": "BREACH",
             "breach_clauses": [
               "Section 3.01(a)",
@@ -339,14 +356,14 @@
           },
           {
             "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
-            "model": "xingchen-agi/xing4.0-29b-a4b:free",
-            "latency_ms": 26379.2,
+            "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+            "latency_ms": 137082.0,
             "llm_verdict": "BREACH",
             "llm_primary_clause": "Section 3.01(a)"
           },
           {
             "node": "Node 4: Grounding & Asymmetric Safety Critic",
-            "latency_ms": 0.1,
+            "latency_ms": 0.68,
             "final_verdict": "BREACH",
             "final_primary_clause": "Section 3.01(a)",
             "critic_intervened": false,
@@ -510,16 +527,16 @@
         "llm_raw_output": {
           "llm_verdict": "BREACH",
           "naive_single_prompt_verdict_without_rules_engine": "PASS",
-          "naive_single_prompt_flaw": "A naive LLM would likely evaluate only the credit quality and currency hedging dimensions, concluding PASS because Apple is investment-grade and the security is USD-denominated, while failing to apply the parent-subsidiary aggregation rule or the single-issuer concentration limit that both independently breach at 5.45% vs. the 5.00% threshold.",
+          "naive_single_prompt_flaw": "A naive LLM without the parent-group aggregator could miss that the 5% limit applies to the combined exposure of all entities sharing the same ultimate_parent_id, potentially allowing group concentration breaches.",
           "primary_clause": "Section 3.01(a)",
           "verbatim_quote": "No proposed purchase may cause the Fund's total exposure to any single issuer to exceed 5.00% of total Fund NAV on a post-trade basis.",
           "qualitative_ambiguity_detected": false,
-          "semantic_analysis": "The deterministic calculator confirms a breach under both Section 3.01(a) and Section 3.01(b), as direct exposure to Apple Inc rises from 4.20% to 5.45% of NAV, exceeding the 5.00% threshold. The prospectus supplement notes ('Senior notes due 2031') contain no thermal coal or transport infrastructure disclosures and no SPV look-through opacity, so no qualitative ambiguity is triggered under Section 5.01(b) or Section 5.02."
+          "semantic_analysis": "The deterministic calculator shows the trade would push Apple Inc exposure to 5.45% NAV, breaching the 5.00% single-issuer limit under Section 3.01(a) and the affiliated group limit under Section 3.01(b). The prospectus supplement notes raise no qualitative ambiguity under Sections 5.01(b) or 5.02."
         },
-        "llm_model_used": "xingchen-agi/xing4.0-29b-a4b:free",
-        "llm_latency_ms": 26379.2,
+        "llm_model_used": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "llm_latency_ms": 137082.0,
         "naive_llm_verdict": "PASS",
-        "naive_llm_rationale": "A naive LLM would likely evaluate only the credit quality and currency hedging dimensions, concluding PASS because Apple is investment-grade and the security is USD-denominated, while failing to apply the parent-subsidiary aggregation rule or the single-issuer concentration limit that both independently breach at 5.45% vs. the 5.00% threshold.",
+        "naive_llm_rationale": "A naive LLM without the parent-group aggregator could miss that the 5% limit applies to the combined exposure of all entities sharing the same ultimate_parent_id, potentially allowing group concentration breaches.",
         "critic_verification": {
           "verbatim_quote_verified": true,
           "fallback_grounding_applied": false,
@@ -533,7 +550,7 @@
         },
         "final_verdict": "BREACH",
         "final_primary_clause": "Section 3.01(a)",
-        "final_audit_rationale": "[Section 3.01(a) -> BREACH] Direct exposure to Apple Inc (ISS-AAPL) moves from 4.20% to 5.45% of NAV (Limit: 5.00%). | [Section 3.01(b) -> BREACH] Aggregated group exposure under ultimate_parent_id=PAR-AAPL (Apple Inc) moves from 4.20% to 5.45% of NAV per Section 1.04 & Section 3.01(b). || LLM Semantic Note: The deterministic calculator confirms a breach under both Section 3.01(a) and Section 3.01(b), as direct exposure to Apple Inc rises from 4.20% to 5.45% of NAV, exceeding the 5.00% threshold. The prospectus supplement notes ('Senior notes due 2031') contain no thermal coal or transport infrastructure disclosures and no SPV look-through opacity, so no qualitative ambiguity is triggered under Section 5.01(b) or Section 5.02. || Source Provenance: IPS-APEX-2026-V4 [Section 3.01(a), chars 2978..3048]",
+        "final_audit_rationale": "[Section 3.01(a) -> BREACH] Direct exposure to Apple Inc (ISS-AAPL) moves from 4.20% to 5.45% of NAV (Limit: 5.00%). | [Section 3.01(b) -> BREACH] Aggregated group exposure under ultimate_parent_id=PAR-AAPL (Apple Inc) moves from 4.20% to 5.45% of NAV per Section 1.04 & Section 3.01(b). || LLM Semantic Note: The deterministic calculator shows the trade would push Apple Inc exposure to 5.45% NAV, breaching the 5.00% single-issuer limit under Section 3.01(a) and the affiliated group limit under Section 3.01(b). The prospectus supplement notes raise no qualitative ambiguity under Sections 5.01(b) or 5.02. || Source Provenance: IPS-APEX-2026-V4 [Section 3.01(a), chars 2978..3048]",
         "human_review_required": true
       }
     },
@@ -544,9 +561,11 @@
       "expected_verdict": "BREACH",
       "expected_primary_clause": "Section 3.01(b)",
       "ground_truth_rationale": "Direct issuer ISS-FPL is only 1.30% of NAV, but under Section 1.04 and Section 3.01(b), aggregating by ultimate_parent_id (PAR-NEE) yields $4.10M + $1.30M = $5.40M (5.40% > 5.00%).",
-      "naive_single_llm_verdict": "PASS",
-      "naive_single_llm_reason": "FALSE NEGATIVE: Direct issuer 'Florida Power & Light Co' has $0 existing holdings (1.30% <= 5.00%); misses parent NextEra (PAR-NEE) aggregation. (LLM Note: A naive LLM would only check the issuer's individual exposure and ignore the parent\u2011subsidiary aggregation rule, incorrectly deeming the trade PASS.)",
-      "naive_single_llm_correct": false,
+      "attribution_category": "INCREMENTAL_UNWIND_LOSS_AVOIDED",
+      "incremental_attribution_value": "+$68,000 Saved",
+      "ticket_only_baseline_verdict": "PASS",
+      "ticket_only_baseline_reason": "Basic ticket-only checks passed (direct: 1.30%, rating: A/A1).",
+      "ticket_only_baseline_correct": false,
       "node3_raw_llm_verdict": "BREACH",
       "node3_raw_llm_correct": true,
       "hybrid_final_verdict": "BREACH",
@@ -555,11 +574,11 @@
       "critic_intervened": false,
       "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
       "verbatim_quote_verified": true,
-      "fallback_grounding_applied": true,
-      "verified_char_span": "2894..3310",
-      "verified_quote_snippet": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issue...",
-      "llm_model_used": "cohere/north-mini-code:free",
-      "llm_latency_ms": 9858.8,
+      "fallback_grounding_applied": false,
+      "verified_char_span": "1306..1388",
+      "verified_quote_snippet": "holdings issued by a parent corporation and all of its majority-owned subsidiaries or guaranteed affiliates (sharing the same `ultimate_parent_id` in the Fund's security master) must be aggregated and treated as a single issuer.",
+      "llm_model_used": "dots-studio/dots-3-note-preview:free",
+      "llm_latency_ms": 43938.4,
       "full_state": {
         "test_id": "TC-03",
         "proposed_trade": {
@@ -583,7 +602,7 @@
         "trace_log": [
           {
             "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
-            "latency_ms": 2.36,
+            "latency_ms": 2.07,
             "clauses_retrieved": [
               "Section 3.01",
               "Section 1.04",
@@ -594,7 +613,7 @@
           },
           {
             "node": "Node 2: Schema-Pruned Deterministic Calculator",
-            "latency_ms": 0.11,
+            "latency_ms": 0.3,
             "deterministic_status": "BREACH",
             "breach_clauses": [
               "Section 3.01(b)"
@@ -604,18 +623,18 @@
           },
           {
             "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
-            "model": "cohere/north-mini-code:free",
-            "latency_ms": 9858.8,
+            "model": "dots-studio/dots-3-note-preview:free",
+            "latency_ms": 43938.4,
             "llm_verdict": "BREACH",
             "llm_primary_clause": "Section 3.01(b)"
           },
           {
             "node": "Node 4: Grounding & Asymmetric Safety Critic",
-            "latency_ms": 0.29,
+            "latency_ms": 1.24,
             "final_verdict": "BREACH",
             "final_primary_clause": "Section 3.01(b)",
             "critic_intervened": false,
-            "char_span": "2894..3310"
+            "char_span": "1306..1388"
           }
         ],
         "retrieved_clauses": [
@@ -762,22 +781,22 @@
         "llm_raw_output": {
           "llm_verdict": "BREACH",
           "naive_single_prompt_verdict_without_rules_engine": "PASS",
-          "naive_single_prompt_flaw": "A naive LLM would only check the issuer's individual exposure and ignore the parent\u2011subsidiary aggregation rule, incorrectly deeming the trade PASS.",
+          "naive_single_prompt_flaw": "A naive LLM might fail to apply the parent-subsidiary aggregation rule under Section 1.04 and only evaluate the direct issuer concentration limit, leading to a false compliance pass.",
           "primary_clause": "Section 3.01(b)",
-          "verbatim_quote": "Pursuant to Section 1.04, the 5.00% of total Fund NAV limit applies to the combined market value of all securities sharing the same ultimate_parent_id.",
+          "verbatim_quote": "holdings issued by a parent corporation and all of its majority-owned subsidiaries or guaranteed affiliates (sharing the same `ultimate_parent_id` in the Fund's security master) must be aggregated and treated as a single issuer.",
           "qualitative_ambiguity_detected": false,
-          "semantic_analysis": "The deterministic engine shows that after the trade the aggregated exposure to the ultimate parent PAR\u2011NEE (NextEra Energy Inc) rises to 5.40% of NAV, exceeding the 5.00% limit under Section\u202f3.01(b). The prospectus supplement notes are straightforward and contain no undisclosed coal\u2011freight or SPV opacity, so no qualitative ambiguity is detected."
+          "semantic_analysis": "The deterministic engine calculates that the aggregated parent exposure under PAR-NEE reaches 5.40% of NAV, breaching the 5.00% limit in Section 3.01(b). The prospectus notes confirm FPL is a wholly-owned subsidiary, which legally triggers the mandatory aggregation under Section 1.04 without any qualifying SPV or coal ambiguities."
         },
-        "llm_model_used": "cohere/north-mini-code:free",
-        "llm_latency_ms": 9858.8,
+        "llm_model_used": "dots-studio/dots-3-note-preview:free",
+        "llm_latency_ms": 43938.4,
         "naive_llm_verdict": "PASS",
-        "naive_llm_rationale": "A naive LLM would only check the issuer's individual exposure and ignore the parent\u2011subsidiary aggregation rule, incorrectly deeming the trade PASS.",
+        "naive_llm_rationale": "A naive LLM might fail to apply the parent-subsidiary aggregation rule under Section 1.04 and only evaluate the direct issuer concentration limit, leading to a false compliance pass.",
         "critic_verification": {
           "verbatim_quote_verified": true,
-          "fallback_grounding_applied": true,
-          "verified_char_start": 2894,
-          "verified_char_end": 3310,
-          "verified_quote_snippet": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issue...",
+          "fallback_grounding_applied": false,
+          "verified_char_start": 1306,
+          "verified_char_end": 1388,
+          "verified_quote_snippet": "holdings issued by a parent corporation and all of its majority-owned subsidiaries or guaranteed affiliates (sharing the same `ultimate_parent_id` in the Fund's security master) must be aggregated and treated as a single issuer.",
           "critic_intervened": false,
           "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
           "llm_raw_verdict": "BREACH",
@@ -785,7 +804,7 @@
         },
         "final_verdict": "BREACH",
         "final_primary_clause": "Section 3.01(b)",
-        "final_audit_rationale": "[Section 3.01(b) -> BREACH] Aggregated group exposure under ultimate_parent_id=PAR-NEE (NextEra Energy Inc) moves from 4.10% to 5.40% of NAV per Section 1.04 & Section 3.01(b). || LLM Semantic Note: The deterministic engine shows that after the trade the aggregated exposure to the ultimate parent PAR\u2011NEE (NextEra Energy Inc) rises to 5.40% of NAV, exceeding the 5.00% limit under Section\u202f3.01(b). The prospectus supplement notes are straightforward and contain no undisclosed coal\u2011freight or SPV opacity, so no qualitative ambiguity is detected. || Source Provenance: IPS-APEX-2026-V4 [Section 3.01(b), chars 2894..3310]",
+        "final_audit_rationale": "[Section 3.01(b) -> BREACH] Aggregated group exposure under ultimate_parent_id=PAR-NEE (NextEra Energy Inc) moves from 4.10% to 5.40% of NAV per Section 1.04 & Section 3.01(b). || LLM Semantic Note: The deterministic engine calculates that the aggregated parent exposure under PAR-NEE reaches 5.40% of NAV, breaching the 5.00% limit in Section 3.01(b). The prospectus notes confirm FPL is a wholly-owned subsidiary, which legally triggers the mandatory aggregation under Section 1.04 without any qualifying SPV or coal ambiguities. || Source Provenance: IPS-APEX-2026-V4 [Section 3.01(b), chars 1306..1388]",
         "human_review_required": true
       }
     },
@@ -796,9 +815,11 @@
       "expected_verdict": "PASS",
       "expected_primary_clause": "Section 2.02(b)",
       "ground_truth_rationale": "If treated as High Yield, this $1.50M trade would push the High Yield bucket from 14.20% to 15.70% (breaching Section 2.01). However, under Section 2.02(b), the higher of the two split ratings (S&P BBB-) governs, classifying it as Investment Grade and leaving High Yield unchanged at 14.20%.",
-      "naive_single_llm_verdict": "BREACH",
-      "naive_single_llm_reason": "FALSE POSITIVE: Sees Moody's Ba1 (High Yield) and adds 1.50% to 14.20% = 15.70% (> 15.00% cap), missing Section 2.02(b) higher split-rating rule. (LLM Note: A naive LLM might incorrectly classify the split-rated bond as High Yield based on Moody's Ba1 rating, causing the aggregate High Yield exposure to appear to breach the 15% ceiling, and might also fail to aggregate parent-subsidiary exposure under Section 1.04.)",
-      "naive_single_llm_correct": false,
+      "attribution_category": "INCREMENTAL_FALSE_BLOCK_COST_AVOIDED",
+      "incremental_attribution_value": "+$82,500 Saved (False Block Fixed)",
+      "ticket_only_baseline_verdict": "BREACH",
+      "ticket_only_baseline_reason": "Conservative rating (Ba1) pushes aggregate High-Yield to 15.70% (> 15.00% cap).",
+      "ticket_only_baseline_correct": false,
       "node3_raw_llm_verdict": "PASS",
       "node3_raw_llm_correct": true,
       "hybrid_final_verdict": "PASS",
@@ -810,8 +831,8 @@
       "fallback_grounding_applied": true,
       "verified_char_span": "2110..2838",
       "verified_quote_snippet": "* **Section 2.02 (Split-Rated Securities Rule):**\n  * **(a)** If a security is rated by both S&P and Moody's and both ratings fall within Investment Grade, it i...",
-      "llm_model_used": "nvidia/nemotron-3-ultra-550b-a55b:free",
-      "llm_latency_ms": 68623.6,
+      "llm_model_used": "nvidia/nemotron-3.5-lightning:free",
+      "llm_latency_ms": 73959.1,
       "full_state": {
         "test_id": "TC-04",
         "proposed_trade": {
@@ -835,7 +856,7 @@
         "trace_log": [
           {
             "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
-            "latency_ms": 1.26,
+            "latency_ms": 0.89,
             "clauses_retrieved": [
               "Section 2.02",
               "Section 1.02",
@@ -848,7 +869,7 @@
           },
           {
             "node": "Node 2: Schema-Pruned Deterministic Calculator",
-            "latency_ms": 0.29,
+            "latency_ms": 0.22,
             "deterministic_status": "PASS",
             "breach_clauses": [],
             "escalation_clauses": [],
@@ -856,14 +877,14 @@
           },
           {
             "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
-            "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-            "latency_ms": 68623.6,
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "latency_ms": 73959.1,
             "llm_verdict": "PASS",
             "llm_primary_clause": "Section 2.02(b)"
           },
           {
             "node": "Node 4: Grounding & Asymmetric Safety Critic",
-            "latency_ms": 0.64,
+            "latency_ms": 1.58,
             "final_verdict": "PASS",
             "final_primary_clause": "Section 2.02(b)",
             "critic_intervened": false,
@@ -1036,16 +1057,16 @@
         "llm_raw_output": {
           "llm_verdict": "PASS",
           "naive_single_prompt_verdict_without_rules_engine": "BREACH",
-          "naive_single_prompt_flaw": "A naive LLM might incorrectly classify the split-rated bond as High Yield based on Moody's Ba1 rating, causing the aggregate High Yield exposure to appear to breach the 15% ceiling, and might also fail to aggregate parent-subsidiary exposure under Section 1.04.",
+          "naive_single_prompt_flaw": "A naive LLM without the split-rating governance check would misclassify the bond as High-Yield based on the Moody's Ba1 rating, incorrectly adding $1.5M to the High-Yield exposure and potentially breaching the 15.00% NAV ceiling.",
           "primary_clause": "Section 2.02(b)",
-          "verbatim_quote": "the higher of the two ratings shall govern for purposes of determining whether the security counts as Investment Grade under Section 2.01 and Section 3.02",
+          "verbatim_quote": "the higher of the two ratings shall govern for purposes of determining whether the security counts as Investment Grade under Section 2.01",
           "qualitative_ambiguity_detected": false,
-          "semantic_analysis": "The deterministic engine confirms the trade passes all quantitative limits: direct and parent-aggregated exposure at 1.50% NAV (well within 5%), aggregate High Yield unchanged at 14.20% (within 15%) because the split-rated bond's higher S&P BBB- rating governs per Section 2.02(b). No qualitative ambiguity arises under Sections 5.01(b) or 5.02 as the prospectus notes only describe the split rating without indicating coal freight or SPV opacity."
+          "semantic_analysis": "The deterministic calculator confirms post-trade NAV exposure of 1.50% against the 5.00% single-issuer limit and 14.20% against the 15.00% high-yield ceiling, both passing per the split-rating governance of Section 2.02(b). The prospectus supplement notes present no qualitative ambiguity under Sections 5.01(b) or 5.02, as zero thermal coal revenue and no SPV/synthetic opacity indicators are present."
         },
-        "llm_model_used": "nvidia/nemotron-3-ultra-550b-a55b:free",
-        "llm_latency_ms": 68623.6,
+        "llm_model_used": "nvidia/nemotron-3.5-lightning:free",
+        "llm_latency_ms": 73959.1,
         "naive_llm_verdict": "BREACH",
-        "naive_llm_rationale": "A naive LLM might incorrectly classify the split-rated bond as High Yield based on Moody's Ba1 rating, causing the aggregate High Yield exposure to appear to breach the 15% ceiling, and might also fail to aggregate parent-subsidiary exposure under Section 1.04.",
+        "naive_llm_rationale": "A naive LLM without the split-rating governance check would misclassify the bond as High-Yield based on the Moody's Ba1 rating, incorrectly adding $1.5M to the High-Yield exposure and potentially breaching the 15.00% NAV ceiling.",
         "critic_verification": {
           "verbatim_quote_verified": true,
           "fallback_grounding_applied": true,
@@ -1059,7 +1080,7 @@
         },
         "final_verdict": "PASS",
         "final_primary_clause": "Section 2.02(b)",
-        "final_audit_rationale": "[Section 3.01(a) -> PASS] Direct exposure to Ford Motor Credit Co LLC (ISS-FMCC) moves from 0.00% to 1.50% of NAV (Limit: 5.00%). | [Section 3.01(b) -> PASS] Aggregated group exposure under ultimate_parent_id=PAR-F (Ford Motor Co) moves from 0.00% to 1.50% of NAV per Section 1.04 & Section 3.01(b). | [Section 2.02(b) -> PASS] Split-rated (S&P BBB- vs Moody's Ba1); higher rating (S&P BBB-) governs as Investment Grade per Section 2.02(b). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%). || LLM Semantic Note: The deterministic engine confirms the trade passes all quantitative limits: direct and parent-aggregated exposure at 1.50% NAV (well within 5%), aggregate High Yield unchanged at 14.20% (within 15%) because the split-rated bond's higher S&P BBB- rating governs per Section 2.02(b). No qualitative ambiguity arises under Sections 5.01(b) or 5.02 as the prospectus notes only describe the split rating without indicating coal freight or SPV opacity. || Source Provenance: IPS-APEX-2026-V4 [Section 2.02(b), chars 2110..2838]",
+        "final_audit_rationale": "[Section 3.01(a) -> PASS] Direct exposure to Ford Motor Credit Co LLC (ISS-FMCC) moves from 0.00% to 1.50% of NAV (Limit: 5.00%). | [Section 3.01(b) -> PASS] Aggregated group exposure under ultimate_parent_id=PAR-F (Ford Motor Co) moves from 0.00% to 1.50% of NAV per Section 1.04 & Section 3.01(b). | [Section 2.02(b) -> PASS] Split-rated (S&P BBB- vs Moody's Ba1); higher rating (S&P BBB-) governs as Investment Grade per Section 2.02(b). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%). || LLM Semantic Note: The deterministic calculator confirms post-trade NAV exposure of 1.50% against the 5.00% single-issuer limit and 14.20% against the 15.00% high-yield ceiling, both passing per the split-rating governance of Section 2.02(b). The prospectus supplement notes present no qualitative ambiguity under Sections 5.01(b) or 5.02, as zero thermal coal revenue and no SPV/synthetic opacity indicators are present. || Source Provenance: IPS-APEX-2026-V4 [Section 2.02(b), chars 2110..2838]",
         "human_review_required": false
       }
     },
@@ -1070,9 +1091,11 @@
       "expected_verdict": "BREACH",
       "expected_primary_clause": "Section 3.02(b)",
       "ground_truth_rationale": "Passes Section 2.01 (Total High Yield = 14.90% <= 15.00%), but breaches Section 3.02(b): High-Yield Energy holdings ($3.10M OXY + $1.40M CHK + $0.70M PR = $5.20M, or 5.20% of NAV) exceed the 5.00% High-Yield Energy Sub-Cap.",
-      "naive_single_llm_verdict": "PASS",
-      "naive_single_llm_reason": "FALSE NEGATIVE: Total High-Yield is 14.90% (<= 15.00% overall cap); misses the 5.00% High-Yield Energy sub-cap (reaches 5.20%). (LLM Note: A naive LLM would miss the aggregated high\u2011yield Energy sub\u2011cap limit and the parent\u2011group aggregation, potentially approving a trade that exceeds the 5% Energy high\u2011yield ceiling.)",
-      "naive_single_llm_correct": false,
+      "attribution_category": "INCREMENTAL_UNWIND_LOSS_AVOIDED",
+      "incremental_attribution_value": "+$34,000 Saved",
+      "ticket_only_baseline_verdict": "PASS",
+      "ticket_only_baseline_reason": "Basic ticket-only checks passed (direct: 0.70%, rating: BB/Ba2).",
+      "ticket_only_baseline_correct": false,
       "node3_raw_llm_verdict": "BREACH",
       "node3_raw_llm_correct": true,
       "hybrid_final_verdict": "BREACH",
@@ -1084,8 +1107,8 @@
       "fallback_grounding_applied": true,
       "verified_char_span": "2894..3310",
       "verified_quote_snippet": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issue...",
-      "llm_model_used": "cohere/north-mini-code:free",
-      "llm_latency_ms": 12775.1,
+      "llm_model_used": "liquid/lfm-2.5-2.6b:free",
+      "llm_latency_ms": 9639.6,
       "full_state": {
         "test_id": "TC-05",
         "proposed_trade": {
@@ -1109,7 +1132,7 @@
         "trace_log": [
           {
             "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
-            "latency_ms": 2.12,
+            "latency_ms": 1.67,
             "clauses_retrieved": [
               "Section 3.01",
               "Section 1.04",
@@ -1120,7 +1143,7 @@
           },
           {
             "node": "Node 2: Schema-Pruned Deterministic Calculator",
-            "latency_ms": 0.17,
+            "latency_ms": 0.25,
             "deterministic_status": "BREACH",
             "breach_clauses": [
               "Section 3.02(b)"
@@ -1130,14 +1153,14 @@
           },
           {
             "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
-            "model": "cohere/north-mini-code:free",
-            "latency_ms": 12775.1,
+            "model": "liquid/lfm-2.5-2.6b:free",
+            "latency_ms": 9639.6,
             "llm_verdict": "BREACH",
             "llm_primary_clause": "Section 3.02(b)"
           },
           {
             "node": "Node 4: Grounding & Asymmetric Safety Critic",
-            "latency_ms": 0.53,
+            "latency_ms": 0.62,
             "final_verdict": "BREACH",
             "final_primary_clause": "Section 3.02(b)",
             "critic_intervened": false,
@@ -1287,17 +1310,17 @@
         },
         "llm_raw_output": {
           "llm_verdict": "BREACH",
-          "naive_single_prompt_verdict_without_rules_engine": "PASS",
-          "naive_single_prompt_flaw": "A naive LLM would miss the aggregated high\u2011yield Energy sub\u2011cap limit and the parent\u2011group aggregation, potentially approving a trade that exceeds the 5% Energy high\u2011yield ceiling.",
+          "naive_single_prompt_verdict_without_rules_engine": "BREACH",
+          "naive_single_prompt_flaw": "A naive LLM without the parent-group aggregator and sub-cap limit awareness would miss that the ultimate_parent_id aggregation combines the issuer exposure, and it would also overlook the specific 5.00% High-Yield Energy sub-cap limit in Section 3.02(b), leading to an incorrect pass.",
           "primary_clause": "Section 3.02(b)",
           "verbatim_quote": "Aggregate holdings in High Yield (Below-Investment-Grade) issuers within the Energy sector shall not exceed 5.00% of total Fund NAV on a post-trade basis.",
           "qualitative_ambiguity_detected": false,
-          "semantic_analysis": "Deterministic math shows the high\u2011yield Energy exposure rises to 5.20% of NAV, breaching the 5.00% limit under Section 3.02(b). The prospectus supplement notes contain no mention of coal freight/transport infrastructure or SPV opacity, so no qualitative ambiguity under Sections 5.01(b) or 5.02."
+          "semantic_analysis": "The deterministic engine shows the High-Yield Energy exposure increases from 4.50% to 5.20% of NAV, which exceeds the 5.00% sub-cap limit set by Section 3.02(b). The IPS clause is unambiguous and clearly defines the 5.00% ceiling for High Yield (Below-Investment-Grade) issuers in the Energy sector, with no conflicting look-through or opacity concerns in the prospectus supplement notes."
         },
-        "llm_model_used": "cohere/north-mini-code:free",
-        "llm_latency_ms": 12775.1,
-        "naive_llm_verdict": "PASS",
-        "naive_llm_rationale": "A naive LLM would miss the aggregated high\u2011yield Energy sub\u2011cap limit and the parent\u2011group aggregation, potentially approving a trade that exceeds the 5% Energy high\u2011yield ceiling.",
+        "llm_model_used": "liquid/lfm-2.5-2.6b:free",
+        "llm_latency_ms": 9639.6,
+        "naive_llm_verdict": "BREACH",
+        "naive_llm_rationale": "A naive LLM without the parent-group aggregator and sub-cap limit awareness would miss that the ultimate_parent_id aggregation combines the issuer exposure, and it would also overlook the specific 5.00% High-Yield Energy sub-cap limit in Section 3.02(b), leading to an incorrect pass.",
         "critic_verification": {
           "verbatim_quote_verified": true,
           "fallback_grounding_applied": true,
@@ -1311,7 +1334,7 @@
         },
         "final_verdict": "BREACH",
         "final_primary_clause": "Section 3.02(b)",
-        "final_audit_rationale": "[Section 3.02(b) -> BREACH] High-Yield Energy exposure moves from 4.50% to 5.20% of NAV (Sub-Cap Limit: 5.00% under Section 3.02(b)). || LLM Semantic Note: Deterministic math shows the high\u2011yield Energy exposure rises to 5.20% of NAV, breaching the 5.00% limit under Section 3.02(b). The prospectus supplement notes contain no mention of coal freight/transport infrastructure or SPV opacity, so no qualitative ambiguity under Sections 5.01(b) or 5.02. || Source Provenance: IPS-APEX-2026-V4 [Section 3.02(b), chars 2894..3310]",
+        "final_audit_rationale": "[Section 3.02(b) -> BREACH] High-Yield Energy exposure moves from 4.50% to 5.20% of NAV (Sub-Cap Limit: 5.00% under Section 3.02(b)). || LLM Semantic Note: The deterministic engine shows the High-Yield Energy exposure increases from 4.50% to 5.20% of NAV, which exceeds the 5.00% sub-cap limit set by Section 3.02(b). The IPS clause is unambiguous and clearly defines the 5.00% ceiling for High Yield (Below-Investment-Grade) issuers in the Energy sector, with no conflicting look-through or opacity concerns in the prospectus supplement notes. || Source Provenance: IPS-APEX-2026-V4 [Section 3.02(b), chars 2894..3310]",
         "human_review_required": true
       }
     },
@@ -1322,9 +1345,11 @@
       "expected_verdict": "PASS",
       "expected_primary_clause": "Section 4.01(b)",
       "ground_truth_rationale": "Qualifies for the Section 4.01(b) Eligible OECD Sovereign Carve-Out: UK is an OECD member, asset_class is SOVEREIGN_BOND, and post-trade unhedged non-USD sovereign exposure is $8.70M (8.70% <= 10.00% cap).",
-      "naive_single_llm_verdict": "PASS",
-      "naive_single_llm_reason": "UK Gilt is an OECD sovereign bond, qualifying for the unhedged non-USD sovereign exception. (LLM Note: A naive LLM would likely miss the OECD sovereign carve\u2011out and treat the unhedged GBP exposure as a violation of the general hedging rule.)",
-      "naive_single_llm_correct": true,
+      "attribution_category": "COMPLIANT_ORDER",
+      "incremental_attribution_value": "$0 (Both Pass)",
+      "ticket_only_baseline_verdict": "PASS",
+      "ticket_only_baseline_reason": "Basic ticket-only checks passed (direct: 1.20%, rating: AA/Aa3).",
+      "ticket_only_baseline_correct": true,
       "node3_raw_llm_verdict": "PASS",
       "node3_raw_llm_correct": true,
       "hybrid_final_verdict": "PASS",
@@ -1333,11 +1358,11 @@
       "critic_intervened": false,
       "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
       "verbatim_quote_verified": true,
-      "fallback_grounding_applied": false,
-      "verified_char_span": "4731..4879",
-      "verified_quote_snippet": "The security is a direct sovereign obligation (`asset_class = \"SOVEREIGN_BOND\"`) of an **Eligible OECD Sovereign** (as defined in Section 1.05); AND",
-      "llm_model_used": "cohere/north-mini-code:free",
-      "llm_latency_ms": 24601.6,
+      "fallback_grounding_applied": true,
+      "verified_char_span": "4231..5008",
+      "verified_quote_snippet": "* **Section 4.01 (Non-USD Currency Exposure):**\n  * **(a) General Hedging Requirement:** All non-USD denominated corporate and municipal securities must be `100...",
+      "llm_model_used": "dots-studio/dots-3-note-preview:free",
+      "llm_latency_ms": 63626.3,
       "full_state": {
         "test_id": "TC-06",
         "proposed_trade": {
@@ -1361,7 +1386,7 @@
         "trace_log": [
           {
             "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
-            "latency_ms": 1.12,
+            "latency_ms": 26.19,
             "clauses_retrieved": [
               "Section 4.01",
               "Section 1.05",
@@ -1372,7 +1397,7 @@
           },
           {
             "node": "Node 2: Schema-Pruned Deterministic Calculator",
-            "latency_ms": 0.1,
+            "latency_ms": 0.11,
             "deterministic_status": "PASS",
             "breach_clauses": [],
             "escalation_clauses": [],
@@ -1380,18 +1405,18 @@
           },
           {
             "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
-            "model": "cohere/north-mini-code:free",
-            "latency_ms": 24601.6,
+            "model": "dots-studio/dots-3-note-preview:free",
+            "latency_ms": 63626.3,
             "llm_verdict": "PASS",
             "llm_primary_clause": "Section 4.01(b)"
           },
           {
             "node": "Node 4: Grounding & Asymmetric Safety Critic",
-            "latency_ms": 0.03,
+            "latency_ms": 2.45,
             "final_verdict": "PASS",
             "final_primary_clause": "Section 4.01(b)",
             "critic_intervened": false,
-            "char_span": "4731..4879"
+            "char_span": "4231..5008"
           }
         ],
         "retrieved_clauses": [
@@ -1535,23 +1560,23 @@
         },
         "llm_raw_output": {
           "llm_verdict": "PASS",
-          "naive_single_prompt_verdict_without_rules_engine": "BREACH",
-          "naive_single_prompt_flaw": "A naive LLM would likely miss the OECD sovereign carve\u2011out and treat the unhedged GBP exposure as a violation of the general hedging rule.",
+          "naive_single_prompt_verdict_without_rules_engine": "PASS",
+          "naive_single_prompt_flaw": "A naive LLM without the parent-group aggregator, split-rating rule, or SPV look-through check could fail to aggregate parent-level exposures under Section 1.04, misclassify split-rated credit quality under Section 2.02(b), or overlook hidden synthetic swap risks under Section 5.02, leading to an incorrect compliance verdict.",
           "primary_clause": "Section 4.01(b)",
-          "verbatim_quote": "The security is a direct sovereign obligation (`asset_class = \"SOVEREIGN_BOND\"`) of an **Eligible OECD Sovereign** (as defined in Section 1.05); AND",
+          "verbatim_quote": "the Fund may purchase unhedged (`is_fx_hedged = false`) non-USD debt securities provided that: 1. The security is a direct sovereign obligation",
           "qualitative_ambiguity_detected": false,
-          "semantic_analysis": "Deterministic calculations show the trade adds 1.20% NAV exposure to the UK sovereign issuer, well within the 5.00% single\u2011issuer limit and the 10.00% unhedged OECD sovereign cap, resulting in a PASS. The prospectus supplement notes only a direct sovereign obligation with no mention of coal freight, transport infrastructure, or opaque SPV structures, so no qualitative ambiguity under Sections\u202f5.01(b) or\u202f5.02 is detected."
+          "semantic_analysis": "The deterministic engine confirms that the proposed purchase of $1,200,000 (1.20% NAV) of UK Gilt is compliant with all concentration, credit quality, and currency hedging limits, including the Section 4.01(b) OECD sovereign carve-out. Qualitative review of the prospectus supplement notes reveals no undisclosed coal freight, transport infrastructure, or orphan SPV look-through opacity, confirming full compliance with Section 5.01 and 5.02."
         },
-        "llm_model_used": "cohere/north-mini-code:free",
-        "llm_latency_ms": 24601.6,
-        "naive_llm_verdict": "BREACH",
-        "naive_llm_rationale": "A naive LLM would likely miss the OECD sovereign carve\u2011out and treat the unhedged GBP exposure as a violation of the general hedging rule.",
+        "llm_model_used": "dots-studio/dots-3-note-preview:free",
+        "llm_latency_ms": 63626.3,
+        "naive_llm_verdict": "PASS",
+        "naive_llm_rationale": "A naive LLM without the parent-group aggregator, split-rating rule, or SPV look-through check could fail to aggregate parent-level exposures under Section 1.04, misclassify split-rated credit quality under Section 2.02(b), or overlook hidden synthetic swap risks under Section 5.02, leading to an incorrect compliance verdict.",
         "critic_verification": {
           "verbatim_quote_verified": true,
-          "fallback_grounding_applied": false,
-          "verified_char_start": 4731,
-          "verified_char_end": 4879,
-          "verified_quote_snippet": "The security is a direct sovereign obligation (`asset_class = \"SOVEREIGN_BOND\"`) of an **Eligible OECD Sovereign** (as defined in Section 1.05); AND",
+          "fallback_grounding_applied": true,
+          "verified_char_start": 4231,
+          "verified_char_end": 5008,
+          "verified_quote_snippet": "* **Section 4.01 (Non-USD Currency Exposure):**\n  * **(a) General Hedging Requirement:** All non-USD denominated corporate and municipal securities must be `100...",
           "critic_intervened": false,
           "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
           "llm_raw_verdict": "PASS",
@@ -1559,7 +1584,7 @@
         },
         "final_verdict": "PASS",
         "final_primary_clause": "Section 4.01(b)",
-        "final_audit_rationale": "[Section 3.01(a) -> PASS] Direct exposure to United Kingdom HM Treasury Gilt 4.00% (ISS-UKGILT) moves from 0.00% to 1.20% of NAV (Limit: 5.00%). | [Section 3.01(b) -> PASS] Aggregated group exposure under ultimate_parent_id=PAR-UK-SOV (United Kingdom HM Treasury) moves from 0.00% to 1.20% of NAV per Section 1.04 & Section 3.01(b). | [Section 2.01 -> PASS] Both agencies rate Investment Grade (S&P AA, Moody's Aa3) per Section 2.02(a). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%). || LLM Semantic Note: Deterministic calculations show the trade adds 1.20% NAV exposure to the UK sovereign issuer, well within the 5.00% single\u2011issuer limit and the 10.00% unhedged OECD sovereign cap, resulting in a PASS. The prospectus supplement notes only a direct sovereign obligation with no mention of coal freight, transport infrastructure, or opaque SPV structures, so no qualitative ambiguity under Sections\u202f5.01(b) or\u202f5.02 is detected. || Source Provenance: IPS-APEX-2026-V4 [Section 4.01(b), chars 4731..4879]",
+        "final_audit_rationale": "[Section 3.01(a) -> PASS] Direct exposure to United Kingdom HM Treasury Gilt 4.00% (ISS-UKGILT) moves from 0.00% to 1.20% of NAV (Limit: 5.00%). | [Section 3.01(b) -> PASS] Aggregated group exposure under ultimate_parent_id=PAR-UK-SOV (United Kingdom HM Treasury) moves from 0.00% to 1.20% of NAV per Section 1.04 & Section 3.01(b). | [Section 2.01 -> PASS] Both agencies rate Investment Grade (S&P AA, Moody's Aa3) per Section 2.02(a). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%). || LLM Semantic Note: The deterministic engine confirms that the proposed purchase of $1,200,000 (1.20% NAV) of UK Gilt is compliant with all concentration, credit quality, and currency hedging limits, including the Section 4.01(b) OECD sovereign carve-out. Qualitative review of the prospectus supplement notes reveals no undisclosed coal freight, transport infrastructure, or orphan SPV look-through opacity, confirming full compliance with Section 5.01 and 5.02. || Source Provenance: IPS-APEX-2026-V4 [Section 4.01(b), chars 4231..5008]",
         "human_review_required": false
       }
     },
@@ -1570,9 +1595,11 @@
       "expected_verdict": "BREACH",
       "expected_primary_clause": "Section 4.01(a)",
       "ground_truth_rationale": "Breaches Section 4.01(a): Even though Germany is an OECD member, the Section 4.01(b) unhedged FX carve-out applies strictly to direct sovereign obligations (SOVEREIGN_BOND), not corporate bonds (CORPORATE_BOND).",
-      "naive_single_llm_verdict": "BREACH",
-      "naive_single_llm_reason": "Unhedged EUR corporate bond violates Section 4.01(a) hedging requirement. (LLM Note: A naive LLM could mistakenly focus on the issuer's strong investment-grade ratings and low concentration percentages, overlooking the strict 100% FX hedging requirement for corporate bonds and incorrectly applying the OECD sovereign exception to this corporate entity.)",
-      "naive_single_llm_correct": true,
+      "attribution_category": "BASELINE_BREACH_CAUGHT_BY_BOTH",
+      "incremental_attribution_value": "$0 Incremental (Both Block)",
+      "ticket_only_baseline_verdict": "BREACH",
+      "ticket_only_baseline_reason": "Unhedged non-USD corporate bond in 'EUR' violates Section 4.01(a) currency hedging rule.",
+      "ticket_only_baseline_correct": true,
       "node3_raw_llm_verdict": "BREACH",
       "node3_raw_llm_correct": true,
       "hybrid_final_verdict": "BREACH",
@@ -1581,11 +1608,11 @@
       "critic_intervened": false,
       "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
       "verbatim_quote_verified": true,
-      "fallback_grounding_applied": false,
-      "verified_char_span": "4320..4479",
-      "verified_quote_snippet": "All non-USD denominated corporate and municipal securities must be `100% currency-hedged` back to `USD` at the time of trade execution (`is_fx_hedged = true`).",
-      "llm_model_used": "dots-studio/dots-3-note-preview:free",
-      "llm_latency_ms": 33447.5,
+      "fallback_grounding_applied": true,
+      "verified_char_span": "4231..5008",
+      "verified_quote_snippet": "* **Section 4.01 (Non-USD Currency Exposure):**\n  * **(a) General Hedging Requirement:** All non-USD denominated corporate and municipal securities must be `100...",
+      "llm_model_used": "nvidia/nemotron-3.5-lightning:free",
+      "llm_latency_ms": 68402.2,
       "full_state": {
         "test_id": "TC-07",
         "proposed_trade": {
@@ -1609,7 +1636,7 @@
         "trace_log": [
           {
             "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
-            "latency_ms": 0.76,
+            "latency_ms": 1.8,
             "clauses_retrieved": [
               "Section 4.01",
               "Section 3.01",
@@ -1621,7 +1648,7 @@
           },
           {
             "node": "Node 2: Schema-Pruned Deterministic Calculator",
-            "latency_ms": 0.08,
+            "latency_ms": 0.4,
             "deterministic_status": "BREACH",
             "breach_clauses": [
               "Section 4.01(a)"
@@ -1631,18 +1658,18 @@
           },
           {
             "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
-            "model": "dots-studio/dots-3-note-preview:free",
-            "latency_ms": 33447.5,
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "latency_ms": 68402.2,
             "llm_verdict": "BREACH",
             "llm_primary_clause": "Section 4.01(a)"
           },
           {
             "node": "Node 4: Grounding & Asymmetric Safety Critic",
-            "latency_ms": 0.3,
+            "latency_ms": 3.21,
             "final_verdict": "BREACH",
             "final_primary_clause": "Section 4.01(a)",
             "critic_intervened": false,
-            "char_span": "4320..4479"
+            "char_span": "4231..5008"
           }
         ],
         "retrieved_clauses": [
@@ -1801,22 +1828,22 @@
         "llm_raw_output": {
           "llm_verdict": "BREACH",
           "naive_single_prompt_verdict_without_rules_engine": "PASS",
-          "naive_single_prompt_flaw": "A naive LLM could mistakenly focus on the issuer's strong investment-grade ratings and low concentration percentages, overlooking the strict 100% FX hedging requirement for corporate bonds and incorrectly applying the OECD sovereign exception to this corporate entity.",
+          "naive_single_prompt_flaw": "A naive LLM would overlook the mandatory 100% FX hedging requirement for non-USD corporate bonds, incorrectly classifying the trade as compliant despite the IPS prohibition on unhedged corporate debt.",
           "primary_clause": "Section 4.01(a)",
-          "verbatim_quote": "All non-USD denominated corporate and municipal securities must be `100% currency-hedged` back to `USD` at the time of trade execution (`is_fx_hedged = true`).",
+          "verbatim_quote": "All non-USD denominated corporate and municipal securities must be 100% currency-hedged back to USD at the time of trade execution.",
           "qualitative_ambiguity_detected": false,
-          "semantic_analysis": "The deterministic engine flags a BREACH under RULE-401-FX because the proposed trade is an unhedged EUR-denominated corporate bond, which violates the 100% currency-hedging requirement for non-USD corporate debt under Section 4.01(a). Since the prospectus supplement notes contain no references to orphan SPVs, synthetic swaps, or transport infrastructure, no qualitative ambiguities under Section 5.01(b) or 5.02 are triggered, confirming a straightforward compliance violation."
+          "semantic_analysis": "The deterministic engine flags a BREACH under Section 4.01(a) because the $1M EUR corporate bond is unhedged (is_fx_hedged=false), resulting in 7.50% NAV unhedged exposure, which exceeds the 100% hedging requirement for non-USD corporates under the IPS. Qualitatively, the trade involves no thermal coal revenue and no SPV look-through opacity, so no additional ambiguity is triggered under Sections 5.01(b) or 5.02."
         },
-        "llm_model_used": "dots-studio/dots-3-note-preview:free",
-        "llm_latency_ms": 33447.5,
+        "llm_model_used": "nvidia/nemotron-3.5-lightning:free",
+        "llm_latency_ms": 68402.2,
         "naive_llm_verdict": "PASS",
-        "naive_llm_rationale": "A naive LLM could mistakenly focus on the issuer's strong investment-grade ratings and low concentration percentages, overlooking the strict 100% FX hedging requirement for corporate bonds and incorrectly applying the OECD sovereign exception to this corporate entity.",
+        "naive_llm_rationale": "A naive LLM would overlook the mandatory 100% FX hedging requirement for non-USD corporate bonds, incorrectly classifying the trade as compliant despite the IPS prohibition on unhedged corporate debt.",
         "critic_verification": {
           "verbatim_quote_verified": true,
-          "fallback_grounding_applied": false,
-          "verified_char_start": 4320,
-          "verified_char_end": 4479,
-          "verified_quote_snippet": "All non-USD denominated corporate and municipal securities must be `100% currency-hedged` back to `USD` at the time of trade execution (`is_fx_hedged = true`).",
+          "fallback_grounding_applied": true,
+          "verified_char_start": 4231,
+          "verified_char_end": 5008,
+          "verified_quote_snippet": "* **Section 4.01 (Non-USD Currency Exposure):**\n  * **(a) General Hedging Requirement:** All non-USD denominated corporate and municipal securities must be `100...",
           "critic_intervened": false,
           "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
           "llm_raw_verdict": "BREACH",
@@ -1824,7 +1851,7 @@
         },
         "final_verdict": "BREACH",
         "final_primary_clause": "Section 4.01(a)",
-        "final_audit_rationale": "[Section 4.01(a) -> BREACH] Unhedged EUR security fails Section 4.01(a): non-USD corporate/non-sovereign securities (asset_class=CORPORATE_BOND) must be 100% FX-hedged. Section 4.01(b) carve-out applies strictly to direct sovereign obligations (SOVEREIGN_BOND) of OECD members. || LLM Semantic Note: The deterministic engine flags a BREACH under RULE-401-FX because the proposed trade is an unhedged EUR-denominated corporate bond, which violates the 100% currency-hedging requirement for non-USD corporate debt under Section 4.01(a). Since the prospectus supplement notes contain no references to orphan SPVs, synthetic swaps, or transport infrastructure, no qualitative ambiguities under Section 5.01(b) or 5.02 are triggered, confirming a straightforward compliance violation. || Source Provenance: IPS-APEX-2026-V4 [Section 4.01(a), chars 4320..4479]",
+        "final_audit_rationale": "[Section 4.01(a) -> BREACH] Unhedged EUR security fails Section 4.01(a): non-USD corporate/non-sovereign securities (asset_class=CORPORATE_BOND) must be 100% FX-hedged. Section 4.01(b) carve-out applies strictly to direct sovereign obligations (SOVEREIGN_BOND) of OECD members. || LLM Semantic Note: The deterministic engine flags a BREACH under Section 4.01(a) because the $1M EUR corporate bond is unhedged (is_fx_hedged=false), resulting in 7.50% NAV unhedged exposure, which exceeds the 100% hedging requirement for non-USD corporates under the IPS. Qualitatively, the trade involves no thermal coal revenue and no SPV look-through opacity, so no additional ambiguity is triggered under Sections 5.01(b) or 5.02. || Source Provenance: IPS-APEX-2026-V4 [Section 4.01(a), chars 4231..5008]",
         "human_review_required": true
       }
     },
@@ -1835,9 +1862,11 @@
       "expected_verdict": "BREACH",
       "expected_primary_clause": "Section 3.03",
       "ground_truth_rationale": "Breaches Section 3.03 & Section 3.01(a): While Section 3.03 allows holding existing positions that drifted above 5.00% passively ($5.15M / 5.15%), it strictly prohibits any incremental active BUY order while exposure exceeds 5.00%.",
-      "naive_single_llm_verdict": "BREACH",
-      "naive_single_llm_reason": "NVIDIA is already at 5.15% (> 5.00%); additional buy is prohibited under Section 3.03. (LLM Note: A naive LLM might incorrectly PASS the trade by treating the $50,000 purchase as de minimis and checking only the issuer name in isolation, thereby missing that Section 3.01(b) requires aggregating all securities under PAR-NVDA and that Section 3.03 bars any active BUY once passive drift has already pushed exposure to 5.15% NAV.)",
-      "naive_single_llm_correct": true,
+      "attribution_category": "BASELINE_BREACH_CAUGHT_BY_BOTH",
+      "incremental_attribution_value": "$0 Incremental (Both Block)",
+      "ticket_only_baseline_verdict": "BREACH",
+      "ticket_only_baseline_reason": "Direct position already exceeds 5.00% limit (5.15%); active purchases banned (Sec 3.03).",
+      "ticket_only_baseline_correct": true,
       "node3_raw_llm_verdict": "BREACH",
       "node3_raw_llm_correct": true,
       "hybrid_final_verdict": "BREACH",
@@ -1849,8 +1878,8 @@
       "fallback_grounding_applied": true,
       "verified_char_span": "2894..3310",
       "verified_quote_snippet": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issue...",
-      "llm_model_used": "nvidia/nemotron-3.5-super-vl:free",
-      "llm_latency_ms": 40081.2,
+      "llm_model_used": "dots-studio/dots-3-note-preview:free",
+      "llm_latency_ms": 43599.6,
       "full_state": {
         "test_id": "TC-08",
         "proposed_trade": {
@@ -1874,7 +1903,7 @@
         "trace_log": [
           {
             "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
-            "latency_ms": 2.81,
+            "latency_ms": 1.92,
             "clauses_retrieved": [
               "Section 3.01",
               "Section 1.04",
@@ -1885,7 +1914,7 @@
           },
           {
             "node": "Node 2: Schema-Pruned Deterministic Calculator",
-            "latency_ms": 0.14,
+            "latency_ms": 0.39,
             "deterministic_status": "BREACH",
             "breach_clauses": [
               "Section 3.03",
@@ -1896,14 +1925,14 @@
           },
           {
             "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
-            "model": "nvidia/nemotron-3.5-super-vl:free",
-            "latency_ms": 40081.2,
+            "model": "dots-studio/dots-3-note-preview:free",
+            "latency_ms": 43599.6,
             "llm_verdict": "BREACH",
             "llm_primary_clause": "Section 3.03"
           },
           {
             "node": "Node 4: Grounding & Asymmetric Safety Critic",
-            "latency_ms": 0.69,
+            "latency_ms": 1.82,
             "final_verdict": "BREACH",
             "final_primary_clause": "Section 3.03",
             "critic_intervened": false,
@@ -2055,16 +2084,16 @@
         "llm_raw_output": {
           "llm_verdict": "BREACH",
           "naive_single_prompt_verdict_without_rules_engine": "PASS",
-          "naive_single_prompt_flaw": "A naive LLM might incorrectly PASS the trade by treating the $50,000 purchase as de minimis and checking only the issuer name in isolation, thereby missing that Section 3.01(b) requires aggregating all securities under PAR-NVDA and that Section 3.03 bars any active BUY once passive drift has already pushed exposure to 5.15% NAV.",
+          "naive_single_prompt_flaw": "A naive LLM might focus on the small $50,000 transaction size and the clean qualitative notes, failing to aggregate the parent-subsidiary holdings or apply the passive drift prohibition on active buys, and thus incorrectly PASS the trade.",
           "primary_clause": "Section 3.03",
           "verbatim_quote": "zero incremental active purchases (`BUY` orders of any dollar amount) may be executed in that issuer or Single-Issuer Group while its post-trade exposure remains above `5.00%` of NAV.",
           "qualitative_ambiguity_detected": false,
-          "semantic_analysis": "The deterministic engine shows NVIDIA Corp is already at 5.15% NAV via passive drift and the proposed $50,000 BUY would raise aggregated exposure to 5.20%, breaching the 5.00% cap under Section 3.03's active-purchase prohibition and Section 3.01(b)'s parent-group aggregation. The prospectus supplement notes contain no undisclosed coal freight, transport infrastructure, orphan SPV, or synthetic swap language, so Sections 5.01(b) and 5.02 introduce no qualitative ambiguity."
+          "semantic_analysis": "The deterministic math demonstrates that the existing NVIDIA Corp parent-group exposure is already at 5.15% of NAV due to passive drift, and executing this active BUY order violates the Section 3.03 prohibition on incremental purchases above the 5.00% threshold. The qualitative notes contain no undisclosed coal freight, transport infrastructure, or orphan SPV structures, meaning no ESG or look-through ambiguities are present under Section 5.01(b) or 5.02."
         },
-        "llm_model_used": "nvidia/nemotron-3.5-super-vl:free",
-        "llm_latency_ms": 40081.2,
+        "llm_model_used": "dots-studio/dots-3-note-preview:free",
+        "llm_latency_ms": 43599.6,
         "naive_llm_verdict": "PASS",
-        "naive_llm_rationale": "A naive LLM might incorrectly PASS the trade by treating the $50,000 purchase as de minimis and checking only the issuer name in isolation, thereby missing that Section 3.01(b) requires aggregating all securities under PAR-NVDA and that Section 3.03 bars any active BUY once passive drift has already pushed exposure to 5.15% NAV.",
+        "naive_llm_rationale": "A naive LLM might focus on the small $50,000 transaction size and the clean qualitative notes, failing to aggregate the parent-subsidiary holdings or apply the passive drift prohibition on active buys, and thus incorrectly PASS the trade.",
         "critic_verification": {
           "verbatim_quote_verified": true,
           "fallback_grounding_applied": true,
@@ -2078,7 +2107,7 @@
         },
         "final_verdict": "BREACH",
         "final_primary_clause": "Section 3.03",
-        "final_audit_rationale": "[Section 3.03 -> BREACH] Existing position in NVIDIA Corp is already at 5.15% NAV due to passive drift. Section 3.03 permits holding passively but strictly prohibits any incremental BUY order ($50,000). | [Section 3.01(b) -> BREACH] Aggregated group exposure under ultimate_parent_id=PAR-NVDA (NVIDIA Corp) moves from 5.15% to 5.20% of NAV per Section 1.04 & Section 3.01(b). || LLM Semantic Note: The deterministic engine shows NVIDIA Corp is already at 5.15% NAV via passive drift and the proposed $50,000 BUY would raise aggregated exposure to 5.20%, breaching the 5.00% cap under Section 3.03's active-purchase prohibition and Section 3.01(b)'s parent-group aggregation. The prospectus supplement notes contain no undisclosed coal freight, transport infrastructure, orphan SPV, or synthetic swap language, so Sections 5.01(b) and 5.02 introduce no qualitative ambiguity. || Source Provenance: IPS-APEX-2026-V4 [Section 3.03, chars 2894..3310]",
+        "final_audit_rationale": "[Section 3.03 -> BREACH] Existing position in NVIDIA Corp is already at 5.15% NAV due to passive drift. Section 3.03 permits holding passively but strictly prohibits any incremental BUY order ($50,000). | [Section 3.01(b) -> BREACH] Aggregated group exposure under ultimate_parent_id=PAR-NVDA (NVIDIA Corp) moves from 5.15% to 5.20% of NAV per Section 1.04 & Section 3.01(b). || LLM Semantic Note: The deterministic math demonstrates that the existing NVIDIA Corp parent-group exposure is already at 5.15% of NAV due to passive drift, and executing this active BUY order violates the Section 3.03 prohibition on incremental purchases above the 5.00% threshold. The qualitative notes contain no undisclosed coal freight, transport infrastructure, or orphan SPV structures, meaning no ESG or look-through ambiguities are present under Section 5.01(b) or 5.02. || Source Provenance: IPS-APEX-2026-V4 [Section 3.03, chars 2894..3310]",
         "human_review_required": true
       }
     },
@@ -2089,9 +2118,11 @@
       "expected_verdict": "ESCALATE_TO_HUMAN",
       "expected_primary_clause": "Section 5.01(b)",
       "ground_truth_rationale": "Passes the hard 10% thermal coal extraction rule in Section 5.01(a) (4.2% <= 10.0%), but triggers qualitative ambiguity under Section 5.01(b) ('substantially dependent on dedicated thermal coal transport... as determined by the Compliance Committee'). Must escalate to Human Compliance Review rather than auto-approving.",
-      "naive_single_llm_verdict": "PASS",
-      "naive_single_llm_reason": "FALSE NEGATIVE: Checks thermal_coal_revenue_pct = 4.2% (<= 10.0% limit) and auto-approves, failing to escalate Section 5.01(b) bulk coal rail freight ambiguity. (LLM Note: A naive LLM without the rules engine could incorrectly output PASS by focusing only on the 4.2% direct coal revenue being under the 10% limit, failing to recognize the qualitative ambiguity of the undisclosed 22% coal freight transport revenue under Section 5.01(b) which requires human escalation.)",
-      "naive_single_llm_correct": false,
+      "attribution_category": "AMBIGUOUS_EXPOSURE_HELD_FOR_CCO",
+      "incremental_attribution_value": "$41,000 At-Risk Held ($1.0M)",
+      "ticket_only_baseline_verdict": "PASS",
+      "ticket_only_baseline_reason": "Basic ticket-only checks passed (direct: 1.00%, rating: BBB+/Baa1).",
+      "ticket_only_baseline_correct": false,
       "node3_raw_llm_verdict": "ESCALATE_TO_HUMAN",
       "node3_raw_llm_correct": true,
       "hybrid_final_verdict": "ESCALATE_TO_HUMAN",
@@ -2100,11 +2131,11 @@
       "critic_intervened": false,
       "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
       "verbatim_quote_verified": true,
-      "fallback_grounding_applied": false,
-      "verified_char_span": "5424..5675",
-      "verified_quote_snippet": "The Fund shall also avoid issuers that are *\"substantially dependent on dedicated thermal coal transport or captive coal-fired logistics infrastructure,\"* as determined by the Compliance Committee upon review of underlying freight revenue disclosures.",
-      "llm_model_used": "dots-studio/dots-3-note-preview:free",
-      "llm_latency_ms": 40688.7,
+      "fallback_grounding_applied": true,
+      "verified_char_span": "5071..5675",
+      "verified_quote_snippet": "* **Section 5.01 (Thermal Coal & Controversial Weapons Exclusions):**\n  * **(a) Hard Revenue Threshold:** The Fund shall not purchase securities of any issuer t...",
+      "llm_model_used": "xingchen-agi/xing4.0-29b-a4b:free",
+      "llm_latency_ms": 57005.0,
       "full_state": {
         "test_id": "TC-09",
         "proposed_trade": {
@@ -2128,7 +2159,7 @@
         "trace_log": [
           {
             "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
-            "latency_ms": 1.05,
+            "latency_ms": 3.55,
             "clauses_retrieved": [
               "Section 5.01",
               "Section 3.01",
@@ -2141,7 +2172,7 @@
           },
           {
             "node": "Node 2: Schema-Pruned Deterministic Calculator",
-            "latency_ms": 0.19,
+            "latency_ms": 0.42,
             "deterministic_status": "ESCALATE_TO_HUMAN",
             "breach_clauses": [],
             "escalation_clauses": [
@@ -2151,18 +2182,18 @@
           },
           {
             "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
-            "model": "dots-studio/dots-3-note-preview:free",
-            "latency_ms": 40688.7,
+            "model": "xingchen-agi/xing4.0-29b-a4b:free",
+            "latency_ms": 57005.0,
             "llm_verdict": "ESCALATE_TO_HUMAN",
             "llm_primary_clause": "Section 5.01(b)"
           },
           {
             "node": "Node 4: Grounding & Asymmetric Safety Critic",
-            "latency_ms": 0.04,
+            "latency_ms": 1.95,
             "final_verdict": "ESCALATE_TO_HUMAN",
             "final_primary_clause": "Section 5.01(b)",
             "critic_intervened": false,
-            "char_span": "5424..5675"
+            "char_span": "5071..5675"
           }
         ],
         "retrieved_clauses": [
@@ -2333,22 +2364,22 @@
         "llm_raw_output": {
           "llm_verdict": "ESCALATE_TO_HUMAN",
           "naive_single_prompt_verdict_without_rules_engine": "PASS",
-          "naive_single_prompt_flaw": "A naive LLM without the rules engine could incorrectly output PASS by focusing only on the 4.2% direct coal revenue being under the 10% limit, failing to recognize the qualitative ambiguity of the undisclosed 22% coal freight transport revenue under Section 5.01(b) which requires human escalation.",
+          "naive_single_prompt_flaw": "A naive LLM without the parent-group aggregator, split-rating rule, or SPV look-through check could incorrectly conclude PASS by only checking the hard 10% revenue threshold (4.2% < 10%) while ignoring the qualitative 'substantially dependent on dedicated thermal coal transport' clause under Section 5.01(b) triggered by the undisclosed coal freight split.",
           "primary_clause": "Section 5.01(b)",
-          "verbatim_quote": "The Fund shall also avoid issuers that are *\"substantially dependent on dedicated thermal coal transport or captive coal-fired logistics infrastructure,\"* as determined by the Compliance Committee upon review of underlying freight revenue disclosures.",
+          "verbatim_quote": "The Fund shall also avoid issuers that are \"substantially dependent on dedicated thermal coal transport or captive coal-fired logistics infrastructure,\" as determined by the Compliance Committee upon review of underlying freight revenue disclosures.",
           "qualitative_ambiguity_detected": true,
-          "semantic_analysis": "The deterministic engine confirms that the direct thermal coal revenue of 4.2% is within the 10.00% hard limit under Section 5.01(a), but the 22.0% bulk rail freight revenue with an undisclosed coal split triggers the qualitative look-through under Section 5.01(b). Consequently, because the prospectus notes reveal an ambiguity regarding dependence on dedicated thermal coal transport infrastructure, the trade must be escalated to the Compliance Committee for a final determination."
+          "semantic_analysis": "The deterministic calculator confirms all quantitative thresholds pass: direct issuer concentration is 1.00% (< 5%), parent-aggregated group concentration is 1.00% (< 5%), aggregate HY ceiling remains 14.20% (< 15%), and the USD-hedged OECD sovereign exception holds. However, the prospectus supplement notes disclose that the issuer derives 22.0% of gross revenue from dedicated Powder River Basin bulk rail freight corridors transporting coal, iron ore, and grain with the exact coal freight split undisclosed, triggering the qualitative 'substantially dependent on dedicated thermal coal transport or captive coal-fired logistics infrastructure' clause under Section 5.01(b) and requiring Compliance Committee sign-off."
         },
-        "llm_model_used": "dots-studio/dots-3-note-preview:free",
-        "llm_latency_ms": 40688.7,
+        "llm_model_used": "xingchen-agi/xing4.0-29b-a4b:free",
+        "llm_latency_ms": 57005.0,
         "naive_llm_verdict": "PASS",
-        "naive_llm_rationale": "A naive LLM without the rules engine could incorrectly output PASS by focusing only on the 4.2% direct coal revenue being under the 10% limit, failing to recognize the qualitative ambiguity of the undisclosed 22% coal freight transport revenue under Section 5.01(b) which requires human escalation.",
+        "naive_llm_rationale": "A naive LLM without the parent-group aggregator, split-rating rule, or SPV look-through check could incorrectly conclude PASS by only checking the hard 10% revenue threshold (4.2% < 10%) while ignoring the qualitative 'substantially dependent on dedicated thermal coal transport' clause under Section 5.01(b) triggered by the undisclosed coal freight split.",
         "critic_verification": {
           "verbatim_quote_verified": true,
-          "fallback_grounding_applied": false,
-          "verified_char_start": 5424,
+          "fallback_grounding_applied": true,
+          "verified_char_start": 5071,
           "verified_char_end": 5675,
-          "verified_quote_snippet": "The Fund shall also avoid issuers that are *\"substantially dependent on dedicated thermal coal transport or captive coal-fired logistics infrastructure,\"* as determined by the Compliance Committee upon review of underlying freight revenue disclosures.",
+          "verified_quote_snippet": "* **Section 5.01 (Thermal Coal & Controversial Weapons Exclusions):**\n  * **(a) Hard Revenue Threshold:** The Fund shall not purchase securities of any issuer t...",
           "critic_intervened": false,
           "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
           "llm_raw_verdict": "ESCALATE_TO_HUMAN",
@@ -2356,7 +2387,7 @@
         },
         "final_verdict": "ESCALATE_TO_HUMAN",
         "final_primary_clause": "Section 5.01(b)",
-        "final_audit_rationale": "[Section 5.01(b) -> ESCALATE_TO_HUMAN] Direct coal extraction revenue is 4.2% (<= 10.0% hard limit), but prospectus notes disclose undisclosed mixed bulk mineral/coal rail freight exposure. Triggers qualitative 'substantially dependent on thermal coal transport infrastructure' clause under Section 5.01(b) requiring Compliance Committee sign-off. || LLM Semantic Note: The deterministic engine confirms that the direct thermal coal revenue of 4.2% is within the 10.00% hard limit under Section 5.01(a), but the 22.0% bulk rail freight revenue with an undisclosed coal split triggers the qualitative look-through under Section 5.01(b). Consequently, because the prospectus notes reveal an ambiguity regarding dependence on dedicated thermal coal transport infrastructure, the trade must be escalated to the Compliance Committee for a final determination. || Source Provenance: IPS-APEX-2026-V4 [Section 5.01(b), chars 5424..5675]",
+        "final_audit_rationale": "[Section 5.01(b) -> ESCALATE_TO_HUMAN] Direct coal extraction revenue is 4.2% (<= 10.0% hard limit), but prospectus notes disclose undisclosed mixed bulk mineral/coal rail freight exposure. Triggers qualitative 'substantially dependent on thermal coal transport infrastructure' clause under Section 5.01(b) requiring Compliance Committee sign-off. || LLM Semantic Note: The deterministic calculator confirms all quantitative thresholds pass: direct issuer concentration is 1.00% (< 5%), parent-aggregated group concentration is 1.00% (< 5%), aggregate HY ceiling remains 14.20% (< 15%), and the USD-hedged OECD sovereign exception holds. However, the prospectus supplement notes disclose that the issuer derives 22.0% of gross revenue from dedicated Powder River Basin bulk rail freight corridors transporting coal, iron ore, and grain with the exact coal freight split undisclosed, triggering the qualitative 'substantially dependent on dedicated thermal coal transport or captive coal-fired logistics infrastructure' clause under Section 5.01(b) and requiring Compliance Committee sign-off. || Source Provenance: IPS-APEX-2026-V4 [Section 5.01(b), chars 5071..5675]",
         "human_review_required": true
       }
     },
@@ -2367,9 +2398,11 @@
       "expected_verdict": "ESCALATE_TO_HUMAN",
       "expected_primary_clause": "Section 5.02",
       "ground_truth_rationale": "Under Section 5.02, pass-through SPVs and Credit-Linked Notes without transparent look-through reference data in the security master cannot be auto-approved by structured column checks alone and must be escalated to Human Compliance Review.",
-      "naive_single_llm_verdict": "PASS",
-      "naive_single_llm_reason": "FALSE NEGATIVE: Sees A-/A3 rated USD note with 0% parent concentration and auto-approves without Section 5.02 SPV swap basket look-through escalation. (LLM Note: A naive LLM would miss the SPV look\u2011through opacity and treat the structured note as a regular investment, incorrectly approving the trade despite the mandatory human review requirement.)",
-      "naive_single_llm_correct": false,
+      "attribution_category": "AMBIGUOUS_EXPOSURE_HELD_FOR_CCO",
+      "incremental_attribution_value": "$52,000 At-Risk Held ($1.5M)",
+      "ticket_only_baseline_verdict": "PASS",
+      "ticket_only_baseline_reason": "Basic ticket-only checks passed (direct: 1.50%, rating: A-/A3).",
+      "ticket_only_baseline_correct": false,
       "node3_raw_llm_verdict": "ESCALATE_TO_HUMAN",
       "node3_raw_llm_correct": true,
       "hybrid_final_verdict": "ESCALATE_TO_HUMAN",
@@ -2379,10 +2412,10 @@
       "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
       "verbatim_quote_verified": true,
       "fallback_grounding_applied": false,
-      "verified_char_span": "5969..6033",
-      "verified_quote_snippet": "Where a security is issued by a pass-through SPV or orphan trust without transparent look-through reference data in the security master, automated systems must abstain and escalate to Human Compliance Review prior to execution.",
-      "llm_model_used": "cohere/north-mini-code:free",
-      "llm_latency_ms": 17422.8,
+      "verified_char_span": "5738..5968",
+      "verified_quote_snippet": "The Fund is strictly prohibited from acquiring direct or indirect economic exposure (including via Special Purpose Vehicles (`SPVs`), Credit-Linked Notes (`CLNs`), or total return swaps) to any entity subject to OFAC/EU sanctions.",
+      "llm_model_used": "nvidia/nemotron-3.5-lightning:free",
+      "llm_latency_ms": 133507.8,
       "full_state": {
         "test_id": "TC-10",
         "proposed_trade": {
@@ -2406,7 +2439,7 @@
         "trace_log": [
           {
             "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
-            "latency_ms": 1.46,
+            "latency_ms": 2.29,
             "clauses_retrieved": [
               "Section 5.02",
               "Section 3.01",
@@ -2417,7 +2450,7 @@
           },
           {
             "node": "Node 2: Schema-Pruned Deterministic Calculator",
-            "latency_ms": 8.5,
+            "latency_ms": 0.28,
             "deterministic_status": "ESCALATE_TO_HUMAN",
             "breach_clauses": [],
             "escalation_clauses": [
@@ -2427,18 +2460,18 @@
           },
           {
             "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
-            "model": "cohere/north-mini-code:free",
-            "latency_ms": 17422.8,
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "latency_ms": 133507.8,
             "llm_verdict": "ESCALATE_TO_HUMAN",
             "llm_primary_clause": "Section 5.02"
           },
           {
             "node": "Node 4: Grounding & Asymmetric Safety Critic",
-            "latency_ms": 0.91,
+            "latency_ms": 0.46,
             "final_verdict": "ESCALATE_TO_HUMAN",
             "final_primary_clause": "Section 5.02",
             "critic_intervened": false,
-            "char_span": "5969..6033"
+            "char_span": "5738..5968"
           }
         ],
         "retrieved_clauses": [
@@ -2585,22 +2618,22 @@
         "llm_raw_output": {
           "llm_verdict": "ESCALATE_TO_HUMAN",
           "naive_single_prompt_verdict_without_rules_engine": "PASS",
-          "naive_single_prompt_flaw": "A naive LLM would miss the SPV look\u2011through opacity and treat the structured note as a regular investment, incorrectly approving the trade despite the mandatory human review requirement.",
+          "naive_single_prompt_flaw": "It would rely solely on the deterministic NAV percentages and overlook the orphan SPV/synthetic swap look-through opacity mandated by Section 5.02, resulting in a false PASS.",
           "primary_clause": "Section 5.02",
-          "verbatim_quote": "Where a security is issued by a pass-through SPV or orphan trust without transparent look-through reference data in the security master, automated systems must abstain and escalate to Human Compliance Review prior to execution.",
+          "verbatim_quote": "The Fund is strictly prohibited from acquiring direct or indirect economic exposure (including via Special Purpose Vehicles (`SPVs`), Credit-Linked Notes (`CLNs`), or total return swaps) to any entity subject to OFAC/EU sanctions.",
           "qualitative_ambiguity_detected": true,
-          "semantic_analysis": "Deterministic calculations show all quantitative limits are satisfied (e.g., 1.5% NAV exposure, 14.2% high-yield aggregate, etc.). However, the prospectus supplement reveals an orphan SPV with a synthetic total return swap to an undisclosed reference basket, which under Section 5.02 creates qualitative opacity and mandates human compliance review."
+          "semantic_analysis": "The deterministic engine confirms the trade stays within NAV concentration and credit quality limits, but the prospectus supplement notes an orphan Cayman SPV with a synthetic total return swap to an undisclosed Eurasian oil & gas transport basket, which triggers Section 5.02's mandatory look-through abstention and human compliance escalation requirement. Therefore, despite deterministic compliance on NAV and credit sub-limits, the qualitative opacity risk necessitates human review before execution."
         },
-        "llm_model_used": "cohere/north-mini-code:free",
-        "llm_latency_ms": 17422.8,
+        "llm_model_used": "nvidia/nemotron-3.5-lightning:free",
+        "llm_latency_ms": 133507.8,
         "naive_llm_verdict": "PASS",
-        "naive_llm_rationale": "A naive LLM would miss the SPV look\u2011through opacity and treat the structured note as a regular investment, incorrectly approving the trade despite the mandatory human review requirement.",
+        "naive_llm_rationale": "It would rely solely on the deterministic NAV percentages and overlook the orphan SPV/synthetic swap look-through opacity mandated by Section 5.02, resulting in a false PASS.",
         "critic_verification": {
           "verbatim_quote_verified": true,
           "fallback_grounding_applied": false,
-          "verified_char_start": 5969,
-          "verified_char_end": 6033,
-          "verified_quote_snippet": "Where a security is issued by a pass-through SPV or orphan trust without transparent look-through reference data in the security master, automated systems must abstain and escalate to Human Compliance Review prior to execution.",
+          "verified_char_start": 5738,
+          "verified_char_end": 5968,
+          "verified_quote_snippet": "The Fund is strictly prohibited from acquiring direct or indirect economic exposure (including via Special Purpose Vehicles (`SPVs`), Credit-Linked Notes (`CLNs`), or total return swaps) to any entity subject to OFAC/EU sanctions.",
           "critic_intervened": false,
           "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
           "llm_raw_verdict": "ESCALATE_TO_HUMAN",
@@ -2608,7 +2641,7 @@
         },
         "final_verdict": "ESCALATE_TO_HUMAN",
         "final_primary_clause": "Section 5.02",
-        "final_audit_rationale": "[Section 5.02 -> ESCALATE_TO_HUMAN] Instrument is a pass-through SPV / Credit-Linked Note (STRUCTURED_NOTE_SPV) with synthetic swap exposure to an undisclosed underlying reference basket. Section 5.02 requires mandatory abstention and Human Compliance look-through verification. || LLM Semantic Note: Deterministic calculations show all quantitative limits are satisfied (e.g., 1.5% NAV exposure, 14.2% high-yield aggregate, etc.). However, the prospectus supplement reveals an orphan SPV with a synthetic total return swap to an undisclosed reference basket, which under Section 5.02 creates qualitative opacity and mandates human compliance review. || Source Provenance: IPS-APEX-2026-V4 [Section 5.02, chars 5969..6033]",
+        "final_audit_rationale": "[Section 5.02 -> ESCALATE_TO_HUMAN] Instrument is a pass-through SPV / Credit-Linked Note (STRUCTURED_NOTE_SPV) with synthetic swap exposure to an undisclosed underlying reference basket. Section 5.02 requires mandatory abstention and Human Compliance look-through verification. || LLM Semantic Note: The deterministic engine confirms the trade stays within NAV concentration and credit quality limits, but the prospectus supplement notes an orphan Cayman SPV with a synthetic total return swap to an undisclosed Eurasian oil & gas transport basket, which triggers Section 5.02's mandatory look-through abstention and human compliance escalation requirement. Therefore, despite deterministic compliance on NAV and credit sub-limits, the qualitative opacity risk necessitates human review before execution. || Source Provenance: IPS-APEX-2026-V4 [Section 5.02, chars 5738..5968]",
         "human_review_required": true
       }
     }

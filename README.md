@@ -141,3 +141,25 @@ To avoid over-claiming savings on trades that a basic single-ticket checker alre
 | **`TC-08`** | **NVIDIA Corp** — Buy `$50k` Stock Above 5% Drift | `BLOCKED` | **`BLOCKED`** | `$15,000 base` | `$0 (Both block)` | Holding `5.15%` passive stock appreciation is compliant (Sec 3.03), but active `BUY` is blocked by both. |
 | **`TC-09`** | **Heartland Rail** — Buy `$1.00M` Bond (Coal Footnote) | `APPROVED` *(Miss!)* | **`HELD (CCO)`** | `$41,000 at-risk` | **`Escalated ($1.0M)`** | Direct coal is `4.2% <= 10%`, but footnote discloses `22%` mixed coal rail freight (Sec 5.01b). |
 | **`TC-10`** | **Cayman Emerald Trust** — Buy `$1.50M` SPV Note | `APPROVED` *(Miss!)* | **`HELD (CCO)`** | `$52,000 at-risk` | **`Escalated ($1.5M)`** | Footnote reveals orphan SPV backed by an undisclosed oil & gas total return swap basket (Sec 5.02). |
+
+---
+
+## 7. Evaluation Methodology & Baseline Construction
+
+### 7.1 Baseline Construction: Rule-Based Ticket-Only Baseline (Basic Single-Ticket Checker)
+To avoid over-claiming savings against a strawman or misrepresenting handcrafted rules as a naive LLM, the benchmark in `evaluate_10_cases.py` compares our gate against an explicit programmatic **Rule-Based Ticket-Only Baseline (5/10, 50.0% accuracy)**. This baseline reflects the reality of legacy OMS pre-trade checking:
+1. **Direct Issuer Match Only:** Sums holdings matching `trade['issuer_id']` directly. It has no access to the security master's corporate tree (`ultimate_parent_id`), so it misses parent-subsidiary aggregation (e.g., failing to catch Florida Power & Light under NextEra in `TC-03`).
+2. **Conservative Rating Rule:** Evaluates ratings using single-agency conservative rules without cross-referenced legal tie-breakers. Because Moody's rates Ford `Ba1` (High-Yield), it falsely blocks Ford Motor Credit in `TC-04`, missing Section 2.02(b) which specifies that the higher rating (`BBB-`) governs.
+3. **Broad Portfolio Caps Only:** Checks top-level portfolio limits (15.00% High-Yield), but lacks multi-dimensional sub-limit tracking, missing the 5.00% High-Yield Energy cap in `TC-05`.
+4. **Structured Columns Only:** Reads only structured database values (e.g. `thermal_coal_revenue_pct = 4.2%`), completely blind to unstructured deal footnotes revealing 22% mixed coal rail corridors (`TC-09`) or orphan SPV swap baskets (`TC-10`).
+
+### 7.2 Ground Truth Construction & Expected Verdicts
+The 10 test cases in `data/test_cases_10.json` represent realistic institutional fixed-income, equity, and credit derivative orders screened against the governing fund mandate (`data/fund_mandate_ips.md`):
+- **3 Compliant / Permitted Trades (`PASS`):** `TC-01` (Microsoft clean bond), `TC-04` (Ford split-rating tie-breaker), `TC-06` (UK Gilt OECD sovereign carve-out).
+- **5 Hard Contractual Breaches (`BREACH`):** `TC-02` (Apple direct 5.45%), `TC-03` (NextEra parent group 5.40%), `TC-05` (HY Energy 5.20%), `TC-07` (Siemens unhedged corporate EUR), `TC-08` (NVIDIA active buy during market drift).
+- **2 Qualitative Footnote Gray Areas (`ESCALATE_TO_HUMAN`):** `TC-09` (Heartland Rail mixed freight), `TC-10` (Cayman Emerald SPV oil/gas swap look-through).
+
+### 7.3 Live API vs. Offline Deterministic Fallback
+- **Live OpenRouter API:** When an `OPENROUTER_API_KEY` is present in `.env`, Step 3 calls instruction-tuned open-source LLMs (`nvidia/nemotron-3.5-super-vl:free`, `meta-llama/llama-3.3-70b-instruct:free`, etc.) to parse deal footnotes, while Step 4 strictly enforces quote substring grounding and the one-way safety state lock.
+- **Offline Deterministic Fallback:** When cloned without an API key, the system runs 100% locally: BM25/TF-IDF retrieval, parent-group aggregation, split-rating resolution, and schema pruning execute in under 5ms, while pre-recorded live LLM benchmarks are loaded from `data/evaluation_results_10.json`.
+
