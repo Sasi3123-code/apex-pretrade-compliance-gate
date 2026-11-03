@@ -940,7 +940,7 @@ render_html(
     <span class="aegis-nav-item"><span class="live-dot"></span>Pre-Trade Gate</span>
     <span class="aegis-nav-item">Losses vs. Savings</span>
     <span class="aegis-nav-item">Activity Dashboard</span>
-    <span class="aegis-nav-pill">{get_svg("shield-check", "#FFFFFF", 15)}+${TOTAL_PAYMENT_SAVED:,.0f} protected</span>
+    <span class="aegis-nav-pill">{get_svg("shield-check", "#FFFFFF", 15)}+$184,500 incremental saved</span>
 </nav>
 
 <section class="aegis-band">
@@ -955,30 +955,30 @@ render_html(
         <rect width="100%" height="100%" fill="url(#aegisGrid)"></rect>
     </svg>
     <div style="position:relative;z-index:2;">
-        <span class="aegis-kicker"><span style="width:6px;height:6px;border-radius:2px;background:#FFFFFF;"></span>LIVE PRE-TRADE PROTECTION · ZERO UNWIND LOSSES</span>
-        <h1 class="aegis-band-title">+${TOTAL_PAYMENT_SAVED:,.0f} saved · $0 loss paid.</h1>
-        <p class="aegis-band-sub">Before any order executes, Apex checks the company, parent group, credit ratings, and fund limits. If a rule is broken, the trade is held so the firm never pays out-of-pocket unwind losses.</p>
+        <span class="aegis-kicker"><span style="width:6px;height:6px;border-radius:2px;background:#FFFFFF;"></span>INVESTMENT MANDATE ENFORCEMENT &amp; COMPLIANCE CONTROLS</span>
+        <h1 class="aegis-band-title">2 unsafe approvals caught · 1 false block fixed · 2 gray areas held.</h1>
+        <p class="aegis-band-sub">Before any order executes, Apex checks the company, parent group, credit ratings, and fund IPS limits. Over basic checks, our gate saves +$184,500 in direct losses/costs and holds $93,000 of ambiguous footnote risk for CCO review.</p>
     </div>
     <div class="aegis-stat-grid">
         <div class="aegis-stat-card">
-            <span style="display:flex;justify-content:space-between;align-items:center;">{get_svg("piggy-bank", "#FFFFFF", 20)}<span style="font-size:11px;background:rgba(255,255,255,.22);padding:2px 8px;border-radius:9999px;font-weight:600;">Protected</span></span>
-            <span class="aegis-stat-val">+${TOTAL_PAYMENT_SAVED:,.0f}</span>
-            <span class="aegis-stat-lbl">Payments &amp; unwind losses saved</span>
+            <span style="display:flex;justify-content:space-between;align-items:center;">{get_svg("piggy-bank", "#FFFFFF", 20)}<span style="font-size:11px;background:rgba(255,255,255,.22);padding:2px 8px;border-radius:9999px;font-weight:600;">Incremental</span></span>
+            <span class="aegis-stat-val">+$184,500</span>
+            <span class="aegis-stat-lbl">Realized value over basic checker (TC-03/04/05)</span>
         </div>
         <div class="aegis-stat-card">
-            <span style="display:flex;justify-content:space-between;align-items:center;">{get_svg("seal-check", "#FFFFFF", 20)}<span style="font-size:11px;background:rgba(255,255,255,.18);padding:2px 8px;border-radius:9999px;font-weight:600;">With Gate</span></span>
-            <span class="aegis-stat-val">${TOTAL_LOSS_PAID_WITH:,.0f}</span>
-            <span class="aegis-stat-lbl">Out-of-pocket loss paid by firm</span>
+            <span style="display:flex;justify-content:space-between;align-items:center;">{get_svg("warning-octagon", "#FFFFFF", 20)}<span style="font-size:11px;background:rgba(255,255,255,.18);padding:2px 8px;border-radius:9999px;font-weight:600;">Held for CCO</span></span>
+            <span class="aegis-stat-val">$93,000</span>
+            <span class="aegis-stat-lbl">Ambiguous footnote exposure held (TC-09/10)</span>
         </div>
         <div class="aegis-stat-card">
-            <span style="display:flex;justify-content:space-between;align-items:center;">{get_svg("warning-octagon", "#FFFFFF", 20)}<span style="font-size:11px;background:rgba(0,0,0,.28);padding:2px 8px;border-radius:9999px;font-weight:600;">Without Gate</span></span>
-            <span class="aegis-stat-val">-${TOTAL_LOSS_PAID_WITHOUT:,.0f}</span>
-            <span class="aegis-stat-lbl">Loss paid if hidden breaches slip through</span>
+            <span style="display:flex;justify-content:space-between;align-items:center;">{get_svg("seal-check", "#FFFFFF", 20)}<span style="font-size:11px;background:rgba(0,0,0,.28);padding:2px 8px;border-radius:9999px;font-weight:600;">Baseline</span></span>
+            <span class="aegis-stat-val">$98,000</span>
+            <span class="aegis-stat-lbl">Standard breaches caught by both (TC-02/07/08)</span>
         </div>
         <div class="aegis-stat-card">
             <span style="display:flex;justify-content:space-between;align-items:center;">{get_svg("hand-palm", "#FFFFFF", 20)}<span style="font-size:11px;background:rgba(255,255,255,.18);padding:2px 8px;border-radius:9999px;font-weight:600;">10 / 10 Checked</span></span>
-            <span class="aegis-stat-val">${TOTAL_BLOCKED_CAPITAL:,.0f}</span>
-            <span class="aegis-stat-lbl">Non-compliant capital stopped pre-trade</span>
+            <span class="aegis-stat-val">$0 Loss</span>
+            <span class="aegis-stat-lbl">Out-of-pocket mandate breach loss paid</span>
         </div>
     </div>
 </section>
@@ -1367,53 +1367,56 @@ with tab_savings:
     s_left, s_right = st.columns([1.05, 1.3], gap="medium")
 
     with s_left:
-        unwind_pct = (TOTAL_UNWIND_SAVED / TOTAL_PAYMENT_SAVED) * 100.0
-        false_pct = (TOTAL_FALSE_ALARM_SAVED / TOTAL_PAYMENT_SAVED) * 100.0
-        fee_pct = (TOTAL_FEE_SAVED / TOTAL_PAYMENT_SAVED) * 100.0
-
         render_html(
             f"""
 <div class="aegis-card">
     <div class="aegis-section-head">
-        <h3 class="aegis-section-title"><span class="aegis-square-dot"></span>Why Pre-Trade Screening Matters</h3>
-        <span class="aegis-pill-tag">Firm P&amp;L Protection</span>
+        <h3 class="aegis-section-title"><span class="aegis-square-dot"></span>Reconciled Financial Attribution</h3>
+        <span class="aegis-pill-tag">Incremental vs. Baseline</span>
     </div>
     <div style="background:#FFF5F5;border:1px solid rgba(196,35,41,.18);border-radius:16px;padding:18px;margin-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;">
-            <span style="font-size:13px;font-weight:700;color:#C42329;text-transform:uppercase;letter-spacing:.04em;">Without Pre-Trade Gate</span>
-            <span style="font-size:26px;font-weight:700;letter-spacing:-.03em;color:#C42329;">-${TOTAL_LOSS_PAID_WITHOUT:,.0f} Loss Paid</span>
+            <span style="font-size:13px;font-weight:700;color:#C42329;text-transform:uppercase;letter-spacing:.04em;">Basic Checker Alone (5/10)</span>
+            <span style="font-size:24px;font-weight:700;letter-spacing:-.03em;color:#C42329;">-$184,500 Direct + $93k Risk</span>
         </div>
-        <p style="margin:6px 0 0 0;font-size:14px;line-height:1.48;color:#4A4A50;">If a bad trade slips through and gets executed, the fund breaks SEC law, has to undo the trade, and the investment firm has to pay for any losses out of its own pocket.</p>
+        <p style="margin:6px 0 0 0;font-size:14px;line-height:1.48;color:#4A4A50;">If a trade violates the fund's investment mandate, it can create a mandate breach, trigger remediation, and expose the adviser to compliance and fiduciary risks under SEC Rule 206(4)-7 (Advisers Act) and Rule 38a-1 (1940 Act).</p>
     </div>
     <div style="background:#FFF4EE;border:1px solid rgba(240,78,20,.24);border-radius:16px;padding:18px;margin-bottom:16px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;">
-            <span style="font-size:13px;font-weight:700;color:#C23805;text-transform:uppercase;letter-spacing:.04em;">With Our Pre-Trade Gate</span>
-            <span style="font-size:26px;font-weight:700;letter-spacing:-.03em;color:#F04E14;">$0 Loss Paid · +${TOTAL_PAYMENT_SAVED:,.0f} Saved</span>
+            <span style="font-size:13px;font-weight:700;color:#C23805;text-transform:uppercase;letter-spacing:.04em;">Incremental Value Over Basic Check</span>
+            <span style="font-size:24px;font-weight:700;letter-spacing:-.03em;color:#F04E14;">+$184,500 Realized + $93k Held</span>
         </div>
-        <p style="margin:6px 0 0 0;font-size:14px;line-height:1.48;color:#4A4A50;">Every parent-company link, split rating, energy sub-limit, and offshore swap is checked before execution. Zero forced liquidations and $0 out-of-pocket loss.</p>
+        <p style="margin:6px 0 0 0;font-size:14px;line-height:1.48;color:#4A4A50;">Our gate catches 2 hidden breaches (TC-03 $68k, TC-05 $34k), fixes 1 costly false block (TC-04 Ford $82.5k), and holds 2 ambiguous footnote trades ($93k at-risk) for CCO sign-off.</p>
     </div>
     <div style="background:#F6F5F3;border-radius:16px;padding:16px 18px;">
-        <div style="font-size:13px;font-weight:700;color:#1D1D1F;margin-bottom:10px;">Where the +${TOTAL_PAYMENT_SAVED:,.0f} Savings Come From</div>
+        <div style="font-size:13px;font-weight:700;color:#1D1D1F;margin-bottom:10px;">Reconciled Breakdown Across All 10 Test Cases ($375,500 Total)</div>
         <div style="margin-bottom:10px;">
             <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
-                <span style="color:#4A4A50;">Forced Market Unwind Slippage Avoided</span>
-                <span style="font-weight:700;color:#F04E14;">+${TOTAL_UNWIND_SAVED:,.0f} ({unwind_pct:.0f}%)</span>
+                <span style="color:#4A4A50;">1. Incremental Unwind Loss Avoided (TC-03 $68k + TC-05 $34k)</span>
+                <span style="font-weight:700;color:#F04E14;">+$102,000 (Realized)</span>
             </div>
-            <div style="height:6px;background:#E2E0DC;border-radius:3px;overflow:hidden;"><div style="width:{unwind_pct:.1f}%;height:100%;background:#F04E14;border-radius:3px;"></div></div>
+            <div style="height:6px;background:#E2E0DC;border-radius:3px;overflow:hidden;"><div style="width:85.0%;height:100%;background:#F04E14;border-radius:3px;"></div></div>
         </div>
         <div style="margin-bottom:10px;">
             <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
-                <span style="color:#4A4A50;">False-Alarm Trade Cancellations Prevented</span>
-                <span style="font-weight:700;color:#11713F;">+${TOTAL_FALSE_ALARM_SAVED:,.0f} ({false_pct:.0f}%)</span>
+                <span style="color:#4A4A50;">2. Incremental False-Block Cost Avoided (TC-04 Ford)</span>
+                <span style="font-weight:700;color:#11713F;">+$82,500 (Realized)</span>
             </div>
-            <div style="height:6px;background:#E2E0DC;border-radius:3px;overflow:hidden;"><div style="width:{false_pct:.1f}%;height:100%;background:#2FBF71;border-radius:3px;"></div></div>
+            <div style="height:6px;background:#E2E0DC;border-radius:3px;overflow:hidden;"><div style="width:68.8%;height:100%;background:#2FBF71;border-radius:3px;"></div></div>
+        </div>
+        <div style="margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+                <span style="color:#4A4A50;">3. Ambiguous Exposure Held for CCO Review (TC-09 $41k + TC-10 $52k)</span>
+                <span style="font-weight:700;color:#92400E;">$93,000 (Held for CCO)</span>
+            </div>
+            <div style="height:6px;background:#E2E0DC;border-radius:3px;overflow:hidden;"><div style="width:77.5%;height:100%;background:#D97706;border-radius:3px;"></div></div>
         </div>
         <div>
             <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
-                <span style="color:#4A4A50;">SEC Audit &amp; Remediation Fees Avoided</span>
-                <span style="font-weight:700;color:#92400E;">+${TOTAL_FEE_SAVED:,.0f} ({fee_pct:.0f}%)</span>
+                <span style="color:#4A4A50;">4. Baseline Breaches Blocked by Both (TC-02 $45k + TC-07 $38k + TC-08 $15k)</span>
+                <span style="font-weight:700;color:#707075;">$98,000 (Baseline)</span>
             </div>
-            <div style="height:6px;background:#E2E0DC;border-radius:3px;overflow:hidden;"><div style="width:{fee_pct:.1f}%;height:100%;background:#D97706;border-radius:3px;"></div></div>
+            <div style="height:6px;background:#E2E0DC;border-radius:3px;overflow:hidden;"><div style="width:81.7%;height:100%;background:#707075;border-radius:3px;"></div></div>
         </div>
     </div>
 </div>

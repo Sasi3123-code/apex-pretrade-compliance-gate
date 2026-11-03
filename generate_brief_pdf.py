@@ -3,17 +3,28 @@ Generates the humanized 5-Page PDF (4-Page Written Brief + 1-Page Appendix)
 at `c:/Tresata/TRESATA_WRITTEN_BRIEF.pdf` using `reportlab`, and validates layout
 by rendering each page to PNG in `c:/Tresata/tmp/pdfs/` and checking extraction
 via `pdfplumber` and `pypdf` (following `openai/skills/.curated/pdf/SKILL.md`).
+
+Incorporates:
+1. Exact Regulatory Precision: Distinguishes contractual Fund Mandate / IPS limits from
+   compliance-program obligations under SEC Rule 206(4)-7 (Investment Advisers Act of 1940)
+   and SEC Rule 38a-1 (Investment Company Act of 1940).
+2. Full Financial & Operational Reconciliation: Explicitly separates incremental value added
+   by our 4-step gate over the basic checker (2 unsafe approvals caught = +$102,000 unwind loss
+   avoided; 1 false block corrected = +$82,500 spread cost avoided; 2 ambiguous trades escalated
+   = $2.50M notional / $93,000 exposure held for CCO review) from the 3 baseline breaches caught
+   by both systems ($98,000 baseline protection).
 """
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 from typing import List
 
 import pdfplumber
 import pypdf
 import pypdfium2 as pdfium
-from reportlab.graphics.shapes import Circle, Drawing, Line, Polygon, Rect, String
+from reportlab.graphics.shapes import Drawing, Line, Rect, String
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.pagesizes import A4
@@ -22,8 +33,6 @@ from reportlab.lib.units import mm
 from reportlab.platypus import (
     BaseDocTemplate,
     Frame,
-    KeepTogether,
-    NextPageTemplate,
     PageBreak,
     PageTemplate,
     Paragraph,
@@ -38,7 +47,6 @@ from reportlab.platypus import (
 ORANGE = colors.HexColor("#F04E14")
 ORANGE_DARK = colors.HexColor("#C23805")
 ORANGE_SOFT = colors.HexColor("#FFF4EE")
-ORANGE_BORDER = colors.HexColor("#F7C6B2")
 
 INK = colors.HexColor("#1D1D1F")
 INK_2 = colors.HexColor("#3F3F46")
@@ -80,100 +88,98 @@ def build_styles() -> dict[str, ParagraphStyle]:
             "H1",
             parent=base["Normal"],
             fontName="Helvetica-Bold",
-            fontSize=10.2,
-            leading=13.0,
+            fontSize=10.0,
+            leading=12.8,
             textColor=INK,
-            spaceBefore=6,
-            spaceAfter=3,
-        ),
-        "h2": ParagraphStyle(
-            "H2",
-            parent=base["Normal"],
-            fontName="Helvetica-Bold",
-            fontSize=8.8,
-            leading=11.4,
-            textColor=ORANGE_DARK,
-            spaceBefore=4,
-            spaceAfter=2,
+            spaceBefore=5,
+            spaceAfter=2.5,
         ),
         "body": ParagraphStyle(
             "Body",
             parent=base["Normal"],
             fontName="Helvetica",
-            fontSize=8.35,
-            leading=11.4,
+            fontSize=8.25,
+            leading=11.2,
             textColor=INK_2,
             alignment=TA_LEFT,
-            spaceBefore=1.5,
-            spaceAfter=3.0,
+            spaceBefore=1.2,
+            spaceAfter=2.6,
         ),
         "bullet": ParagraphStyle(
             "Bullet",
             parent=base["Normal"],
             fontName="Helvetica",
-            fontSize=8.25,
-            leading=11.1,
+            fontSize=8.15,
+            leading=10.9,
             leftIndent=10,
             firstLineIndent=-7,
             textColor=INK_2,
-            spaceBefore=1.0,
-            spaceAfter=2.2,
+            spaceBefore=0.8,
+            spaceAfter=2.0,
         ),
         "callout": ParagraphStyle(
             "Callout",
             parent=base["Normal"],
             fontName="Helvetica",
-            fontSize=8.25,
-            leading=11.2,
+            fontSize=8.15,
+            leading=11.0,
             textColor=INK,
         ),
         "th": ParagraphStyle(
             "TH",
             parent=base["Normal"],
             fontName="Helvetica-Bold",
-            fontSize=7.7,
-            leading=9.8,
+            fontSize=7.5,
+            leading=9.5,
             textColor=colors.white,
         ),
         "td": ParagraphStyle(
             "TD",
             parent=base["Normal"],
             fontName="Helvetica",
-            fontSize=7.65,
-            leading=10.0,
+            fontSize=7.45,
+            leading=9.7,
             textColor=INK_2,
         ),
         "td_bold": ParagraphStyle(
             "TDBold",
             parent=base["Normal"],
             fontName="Helvetica-Bold",
-            fontSize=7.65,
-            leading=10.0,
+            fontSize=7.45,
+            leading=9.7,
             textColor=INK,
         ),
         "badge_pass": ParagraphStyle(
             "BadgePass",
             parent=base["Normal"],
             fontName="Helvetica-Bold",
-            fontSize=7.2,
-            leading=9.2,
+            fontSize=7.1,
+            leading=9.0,
             textColor=GREEN,
         ),
         "badge_breach": ParagraphStyle(
             "BadgeBreach",
             parent=base["Normal"],
             fontName="Helvetica-Bold",
-            fontSize=7.2,
-            leading=9.2,
+            fontSize=7.1,
+            leading=9.0,
             textColor=RED,
         ),
         "badge_hold": ParagraphStyle(
             "BadgeHold",
             parent=base["Normal"],
             fontName="Helvetica-Bold",
-            fontSize=7.2,
-            leading=9.2,
+            fontSize=7.1,
+            leading=9.0,
             textColor=AMBER,
+        ),
+        "badge_muted": ParagraphStyle(
+            "BadgeMuted",
+            parent=base["Normal"],
+            fontName="Helvetica",
+            fontSize=7.1,
+            leading=9.0,
+            textColor=MUTED,
         ),
     }
 
@@ -186,18 +192,18 @@ def section_heading(title: str, tag: str, styles: dict[str, ParagraphStyle]) -> 
     dot.add(Rect(0, 0.5, 6.5, 6.5, rx=1.5, ry=1.5, fillColor=ORANGE, strokeColor=None))
     left_p = Paragraph(f"<b>{title}</b>", styles["h1"])
     right_p = Paragraph(
-        f'<font color="#C23805" size="7.4"><b>{tag}</b></font>',
-        ParagraphStyle("RightTag", fontName="Helvetica-Bold", fontSize=7.4, alignment=2),
+        f'<font color="#C23805" size="7.3"><b>{tag}</b></font>',
+        ParagraphStyle("RightTag", fontName="Helvetica-Bold", fontSize=7.3, alignment=2),
     )
-    tbl = Table([[dot, left_p, right_p]], colWidths=[11, CONTENT_W - 125, 114])
+    tbl = Table([[dot, left_p, right_p]], colWidths=[11, CONTENT_W - 135, 124])
     tbl.setStyle(
         TableStyle(
             [
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("TOPPADDING", (0, 0), (-1, -1), 3),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                ("TOPPADDING", (0, 0), (-1, -1), 2.5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5),
                 ("LINEBELOW", (0, 0), (-1, 0), 0.8, BORDER),
             ]
         )
@@ -217,8 +223,8 @@ def callout_box(text: str, styles: dict[str, ParagraphStyle], bg=ORANGE_SOFT, ba
                 ("BOX", (0, 0), (-1, -1), 0.5, BORDER),
                 ("LEFTPADDING", (0, 0), (-1, -1), 8),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                ("TOPPADDING", (0, 0), (-1, -1), 5),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ("TOPPADDING", (0, 0), (-1, -1), 4.5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4.5),
             ]
         )
     )
@@ -226,16 +232,14 @@ def callout_box(text: str, styles: dict[str, ParagraphStyle], bg=ORANGE_SOFT, ba
 
 
 def draw_hero_banner() -> Drawing:
-    """Draw the Page 1 AEGIS Warm Electric Orange Hero Band with 4 KPI Stat Cards."""
+    """Draw the Page 1 AEGIS Warm Electric Orange Hero Band with Auditable Operational Metrics."""
     d = Drawing(CONTENT_W, 92)
-    # Main rounded orange band (strictly clipped within CONTENT_W x 92)
     d.add(Rect(0, 0, CONTENT_W, 92, rx=8, ry=8, fillColor=ORANGE, strokeColor=ORANGE_DARK, strokeWidth=0.6))
-    # Subtle top-right badge inside the banner bounds
     d.add(
         Rect(
-            CONTENT_W - 142,
+            CONTENT_W - 148,
             69,
-            128,
+            134,
             15,
             rx=7,
             ry=7,
@@ -246,23 +250,22 @@ def draw_hero_banner() -> Drawing:
     )
     d.add(
         String(
-            CONTENT_W - 134,
+            CONTENT_W - 140,
             74,
-            "LIVE GATE  |  10 / 10 VERIFIED",
+            "10 / 10 ACCURACY vs 5 / 10 BASELINE",
             fontName="Helvetica-Bold",
-            fontSize=6.8,
+            fontSize=6.6,
             fillColor=colors.white,
         )
     )
 
-    # Kicker & Headline
     d.add(
         String(
             14,
             75,
-            "APEX PRE-TRADE COMPLIANCE GATE  |  SEC RULE 206(4)-7 PROTECTION",
+            "APEX PRE-TRADE COMPLIANCE GATE  |  INVESTMENT MANDATE & COMPLIANCE CONTROLS",
             fontName="Helvetica-Bold",
-            fontSize=7.3,
+            fontSize=6.8,
             fillColor=colors.HexColor("#FFE4D6"),
         )
     )
@@ -270,9 +273,9 @@ def draw_hero_banner() -> Drawing:
         String(
             14,
             56,
-            "+$375,500 Saved  |  $0 Out-of-Pocket Loss Paid by the Firm",
+            "2 Unsafe Approvals Caught  |  1 False Block Fixed  |  2 Gray Areas Escalated",
             fontName="Helvetica-Bold",
-            fontSize=14.2,
+            fontSize=13.2,
             fillColor=colors.white,
         )
     )
@@ -280,19 +283,18 @@ def draw_hero_banner() -> Drawing:
         String(
             14,
             43,
-            "Checking parent-company links, split ratings, energy sub-limits, and deal footnotes before a trade executes.",
+            "Incremental value over basic checks: +$184,500 direct loss/cost avoided + $93,000 ambiguous exposure held for CCO review.",
             fontName="Helvetica",
-            fontSize=8.0,
+            fontSize=7.85,
             fillColor=colors.HexColor("#FFF4EE"),
         )
     )
 
-    # 4 Stat Cards along the bottom of the hero band
     cards = [
-        ("+$375,500", "Unwind Losses & Costs Saved"),
-        ("$0 Paid", "Firm Loss With Our Gate"),
-        ("-$277,500", "Loss & Costs Without Gate"),
-        ("$10.70M", "10 / 10 Orders Screened"),
+        ("+$102,000", "2 Hidden Breaches Blocked (TC-03/05)"),
+        ("+$82,500", "1 False Block Fixed (TC-04 Ford)"),
+        ("$93,000 Held", "2 Footnote Risks Held (TC-09/10)"),
+        ("$98,000 Base", "3 Standard Breaches Caught by Both"),
     ]
     card_w = (CONTENT_W - 28 - 3 * 8) / 4.0
     for idx, (val, lbl) in enumerate(cards):
@@ -310,35 +312,35 @@ def draw_hero_banner() -> Drawing:
                 strokeWidth=0.5,
             )
         )
-        d.add(String(cx + 8, 21, val, fontName="Helvetica-Bold", fontSize=10.2, fillColor=colors.white))
-        d.add(String(cx + 8, 10.5, lbl, fontName="Helvetica", fontSize=6.8, fillColor=colors.HexColor("#FFE4D6")))
+        d.add(String(cx + 7, 21, val, fontName="Helvetica-Bold", fontSize=9.8, fillColor=colors.white))
+        d.add(String(cx + 7, 10.5, lbl, fontName="Helvetica", fontSize=6.15, fillColor=colors.HexColor("#FFE4D6")))
     return d
 
 
 def draw_architecture_diagram() -> Drawing:
     """Draw the 4-Step Hybrid Compliance Architecture & 4-Dashboard UI Flow."""
-    d = Drawing(CONTENT_W, 138)
-    d.add(Rect(0, 0, CONTENT_W, 138, rx=8, ry=8, fillColor=SURFACE, strokeColor=BORDER, strokeWidth=0.7))
+    d = Drawing(CONTENT_W, 136)
+    d.add(Rect(0, 0, CONTENT_W, 136, rx=8, ry=8, fillColor=SURFACE, strokeColor=BORDER, strokeWidth=0.7))
 
     # Left Input Boxes (x=8..116, w=108)
-    d.add(Rect(8, 76, 108, 52, rx=5, ry=5, fillColor=colors.white, strokeColor=BORDER, strokeWidth=0.8))
-    d.add(String(13, 114, "1. Proposed Order Ticket", fontName="Helvetica-Bold", fontSize=7.5, fillColor=INK))
-    d.add(String(13, 102, "- Company & Parent ID", fontName="Helvetica", fontSize=6.9, fillColor=INK_2))
-    d.add(String(13, 92, "- Amount, Ratings, CCY", fontName="Helvetica", fontSize=6.9, fillColor=INK_2))
-    d.add(String(13, 82, "- Deal Footnotes & Riders", fontName="Helvetica", fontSize=6.9, fillColor=INK_2))
+    d.add(Rect(8, 74, 108, 52, rx=5, ry=5, fillColor=colors.white, strokeColor=BORDER, strokeWidth=0.8))
+    d.add(String(13, 112, "1. Proposed Order Ticket", fontName="Helvetica-Bold", fontSize=7.5, fillColor=INK))
+    d.add(String(13, 100, "- Company & Parent ID", fontName="Helvetica", fontSize=6.9, fillColor=INK_2))
+    d.add(String(13, 90, "- Amount, Ratings, CCY", fontName="Helvetica", fontSize=6.9, fillColor=INK_2))
+    d.add(String(13, 80, "- Deal Footnotes & Riders", fontName="Helvetica", fontSize=6.9, fillColor=INK_2))
 
     d.add(Rect(8, 12, 108, 52, rx=5, ry=5, fillColor=colors.white, strokeColor=BORDER, strokeWidth=0.8))
-    d.add(String(13, 50, "2. Portfolio & Rulebook", fontName="Helvetica-Bold", fontSize=7.5, fillColor=INK))
+    d.add(String(13, 50, "2. Portfolio & Mandate", fontName="Helvetica-Bold", fontSize=7.5, fillColor=INK))
     d.add(String(13, 38, "- $100M Settled Holdings", fontName="Helvetica", fontSize=6.9, fillColor=INK_2))
     d.add(String(13, 28, "- fund_schema.yaml Pruner", fontName="Helvetica", fontSize=6.9, fillColor=INK_2))
     d.add(String(13, 18, "- Mandate IPS-APEX-2026-V4", fontName="Helvetica", fontSize=6.9, fillColor=INK_2))
 
     # Step 1 & Step 2 (x=128..270, w=142)
-    d.add(Rect(128, 76, 142, 52, rx=5, ry=5, fillColor=ORANGE_SOFT, strokeColor=ORANGE, strokeWidth=1.0))
-    d.add(String(134, 114, "Step 1: Rulebook Search (Exact)", fontName="Helvetica-Bold", fontSize=7.5, fillColor=ORANGE_DARK))
-    d.add(String(134, 102, "- BM25 + TF-IDF Keyword Search", fontName="Helvetica", fontSize=6.9, fillColor=INK))
-    d.add(String(134, 92, "- Auto-follows linked definitions", fontName="Helvetica", fontSize=6.9, fillColor=INK))
-    d.add(String(134, 82, "- Saves exact character offsets", fontName="Helvetica", fontSize=6.9, fillColor=ORANGE_DARK))
+    d.add(Rect(128, 74, 142, 52, rx=5, ry=5, fillColor=ORANGE_SOFT, strokeColor=ORANGE, strokeWidth=1.0))
+    d.add(String(134, 112, "Step 1: Mandate Search (Exact)", fontName="Helvetica-Bold", fontSize=7.5, fillColor=ORANGE_DARK))
+    d.add(String(134, 100, "- BM25 + TF-IDF Keyword Search", fontName="Helvetica", fontSize=6.9, fillColor=INK))
+    d.add(String(134, 90, "- Auto-follows linked definitions", fontName="Helvetica", fontSize=6.9, fillColor=INK))
+    d.add(String(134, 80, "- Saves exact character offsets", fontName="Helvetica", fontSize=6.9, fillColor=ORANGE_DARK))
 
     d.add(Rect(128, 12, 142, 52, rx=5, ry=5, fillColor=GREEN_BG, strokeColor=GREEN, strokeWidth=1.0))
     d.add(String(134, 50, "Step 2: Exact Limit Calculator", fontName="Helvetica-Bold", fontSize=7.5, fillColor=GREEN))
@@ -347,11 +349,11 @@ def draw_architecture_diagram() -> Drawing:
     d.add(String(134, 18, "- Resolves split credit ratings", fontName="Helvetica", fontSize=6.9, fillColor=GREEN))
 
     # Step 3 & Step 4 (x=282..416, w=134)
-    d.add(Rect(282, 76, 134, 52, rx=5, ry=5, fillColor=colors.white, strokeColor=INK, strokeWidth=0.9))
-    d.add(String(288, 114, "Step 3: Deal Note Reader (AI)", fontName="Helvetica-Bold", fontSize=7.5, fillColor=INK))
-    d.add(String(288, 102, "- Reads unstructured footnotes", fontName="Helvetica", fontSize=6.9, fillColor=INK_2))
-    d.add(String(288, 92, "- Flags hidden coal/SPV traps", fontName="Helvetica", fontSize=6.9, fillColor=INK_2))
-    d.add(String(288, 82, "- Never touches portfolio math", fontName="Helvetica", fontSize=6.9, fillColor=ORANGE_DARK))
+    d.add(Rect(282, 74, 134, 52, rx=5, ry=5, fillColor=colors.white, strokeColor=INK, strokeWidth=0.9))
+    d.add(String(288, 112, "Step 3: Deal Note Reader (AI)", fontName="Helvetica-Bold", fontSize=7.5, fillColor=INK))
+    d.add(String(288, 100, "- Reads unstructured footnotes", fontName="Helvetica", fontSize=6.9, fillColor=INK_2))
+    d.add(String(288, 90, "- Flags hidden coal/SPV traps", fontName="Helvetica", fontSize=6.9, fillColor=INK_2))
+    d.add(String(288, 80, "- Never touches portfolio math", fontName="Helvetica", fontSize=6.9, fillColor=ORANGE_DARK))
 
     d.add(Rect(282, 12, 134, 52, rx=5, ry=5, fillColor=AMBER_BG, strokeColor=AMBER, strokeWidth=1.0))
     d.add(String(288, 50, "Step 4: Final Safety Lock", fontName="Helvetica-Bold", fontSize=7.5, fillColor=AMBER))
@@ -359,61 +361,62 @@ def draw_architecture_diagram() -> Drawing:
     d.add(String(288, 28, "- AI can NEVER override a breach", fontName="Helvetica", fontSize=6.9, fillColor=INK))
     d.add(String(288, 18, "- Routes gray areas to Officer", fontName="Helvetica", fontSize=6.9, fillColor=AMBER))
 
-    # Right Output Pills (x=430..518, w=88, well within CONTENT_W=527.2)
-    d.add(Rect(430, 92, 88, 36, rx=5, ry=5, fillColor=GREEN_BG, strokeColor=GREEN, strokeWidth=1.0))
-    d.add(String(437, 113, "APPROVED", fontName="Helvetica-Bold", fontSize=7.6, fillColor=GREEN))
-    d.add(String(437, 100, "Safe to execute", fontName="Helvetica", fontSize=6.8, fillColor=INK_2))
+    # Right Output Pills (x=430..518, w=88)
+    d.add(Rect(430, 90, 88, 36, rx=5, ry=5, fillColor=GREEN_BG, strokeColor=GREEN, strokeWidth=1.0))
+    d.add(String(437, 111, "APPROVED", fontName="Helvetica-Bold", fontSize=7.6, fillColor=GREEN))
+    d.add(String(437, 98, "Safe to execute", fontName="Helvetica", fontSize=6.8, fillColor=INK_2))
 
-    d.add(Rect(430, 51, 88, 36, rx=5, ry=5, fillColor=RED_BG, strokeColor=RED, strokeWidth=1.0))
-    d.add(String(437, 72, "BLOCKED", fontName="Helvetica-Bold", fontSize=7.6, fillColor=RED))
-    d.add(String(437, 59, "Stopped pre-trade", fontName="Helvetica", fontSize=6.8, fillColor=INK_2))
+    d.add(Rect(430, 50, 88, 36, rx=5, ry=5, fillColor=RED_BG, strokeColor=RED, strokeWidth=1.0))
+    d.add(String(437, 71, "BLOCKED", fontName="Helvetica-Bold", fontSize=7.6, fillColor=RED))
+    d.add(String(437, 58, "Stopped pre-trade", fontName="Helvetica", fontSize=6.8, fillColor=INK_2))
 
     d.add(Rect(430, 10, 88, 36, rx=5, ry=5, fillColor=AMBER_BG, strokeColor=AMBER, strokeWidth=1.0))
     d.add(String(437, 31, "HELD (CCO)", fontName="Helvetica-Bold", fontSize=7.6, fillColor=AMBER))
     d.add(String(437, 18, "Officer sign-off", fontName="Helvetica", fontSize=6.8, fillColor=INK_2))
 
     # Connectors
-    for y_pos in (102, 38):
+    for y_pos in (100, 38):
         d.add(Line(116, y_pos, 128, y_pos, strokeColor=INK_2, strokeWidth=1.0))
-    d.add(Line(270, 102, 282, 102, strokeColor=INK_2, strokeWidth=1.0))
+    d.add(Line(270, 100, 282, 100, strokeColor=INK_2, strokeWidth=1.0))
     d.add(Line(270, 38, 282, 38, strokeColor=INK_2, strokeWidth=1.0))
-    d.add(Line(349, 76, 349, 64, strokeColor=INK_2, strokeWidth=1.0))
-    d.add(Line(416, 38, 430, 110, strokeColor=GREEN, strokeWidth=1.0))
-    d.add(Line(416, 38, 430, 69, strokeColor=RED, strokeWidth=1.0))
+    d.add(Line(349, 74, 349, 64, strokeColor=INK_2, strokeWidth=1.0))
+    d.add(Line(416, 38, 430, 108, strokeColor=GREEN, strokeWidth=1.0))
+    d.add(Line(416, 38, 430, 68, strokeColor=RED, strokeWidth=1.0))
     d.add(Line(416, 38, 430, 28, strokeColor=AMBER, strokeWidth=1.0))
     return d
 
 
 def draw_savings_chart() -> Drawing:
-    """Draw a visual horizontal breakdown of the +$375,500 saved across 7 protected orders."""
-    d = Drawing(CONTENT_W, 88)
-    d.add(Rect(0, 0, CONTENT_W, 88, rx=7, ry=7, fillColor=SURFACE, strokeColor=BORDER, strokeWidth=0.7))
+    """Draw a fully reconciled horizontal breakdown separating Incremental Value vs. Escalated vs. Baseline."""
+    d = Drawing(CONTENT_W, 96)
+    d.add(Rect(0, 0, CONTENT_W, 96, rx=7, ry=7, fillColor=SURFACE, strokeColor=BORDER, strokeWidth=0.7))
     d.add(
         String(
             12,
-            72,
-            "WHERE THE +$375,500 IN PRE-TRADE PROTECTION COMES FROM (ACROSS 10 SCREENED ORDERS)",
+            80,
+            "RECONCILIATION OF PRE-TRADE PROTECTION ACROSS ALL 10 TEST CASES (INCREMENTAL vs. ESCALATED vs. BASELINE)",
             fontName="Helvetica-Bold",
-            fontSize=7.6,
+            fontSize=7.3,
             fillColor=INK,
         )
     )
 
     rows = [
-        ("Forced Market Unwind Slippage Avoided (5 Blocked Breaches)", 167000, "+$167,000 (44.5%)", ORANGE),
-        ("False-Alarm Cancellations Prevented (Ford & Cayman SPV)", 166500, "+$166,500 (44.3%)", GREEN),
-        ("SEC Rule 206(4)-7 Remediation & Legal Review Fees Avoided", 42000, "+$42,000 (11.2%)", AMBER),
+        ("1. Incremental Unwind Loss Avoided (TC-03 $68k + TC-05 $34k caught by gate)", 102000, "+$102,000 (Realized)", ORANGE),
+        ("2. Incremental False-Block Cost Avoided (TC-04 Ford split-rating fixed by gate)", 82500, "+$82,500 (Realized)", GREEN),
+        ("3. Ambiguous Exposure Held for CCO Review (TC-09 $41k + TC-10 $52k escalated)", 93000, "$93,000 (Held for CCO)", AMBER),
+        ("4. Baseline Breaches Blocked by Both (TC-02 $45k + TC-07 $38k + TC-08 $15k)", 98000, "$98,000 (Baseline)", MUTED),
     ]
-    max_val = 200000.0
-    bar_x = 248.0
-    bar_max_w = 192.0
+    max_val = 120000.0
+    bar_x = 286.0
+    bar_max_w = 124.0
     for idx, (label, val, val_txt, col) in enumerate(rows):
-        y = 50 - idx * 20
-        d.add(String(12, y, label, fontName="Helvetica", fontSize=7.35, fillColor=INK_2))
-        d.add(Rect(bar_x, y - 1, bar_max_w, 8, rx=3, ry=3, fillColor=BORDER, strokeColor=None))
+        y = 62 - idx * 17
+        d.add(String(12, y, label, fontName="Helvetica", fontSize=7.0, fillColor=INK_2))
+        d.add(Rect(bar_x, y - 1, bar_max_w, 7.5, rx=3, ry=3, fillColor=BORDER, strokeColor=None))
         w = (val / max_val) * bar_max_w
-        d.add(Rect(bar_x, y - 1, w, 8, rx=3, ry=3, fillColor=col, strokeColor=None))
-        d.add(String(448, y, val_txt, fontName="Helvetica-Bold", fontSize=7.45, fillColor=INK))
+        d.add(Rect(bar_x, y - 1, w, 7.5, rx=3, ry=3, fillColor=col, strokeColor=None))
+        d.add(String(418, y, val_txt, fontName="Helvetica-Bold", fontSize=7.15, fillColor=INK))
     return d
 
 
@@ -422,27 +425,33 @@ def draw_page_chrome(canvas, doc):
     canvas.saveState()
     page_num = canvas.getPageNumber()
 
-    # Top thin orange accent bar
     canvas.setFillColor(ORANGE)
     canvas.rect(MARGIN_X, PAGE_H - 10 * mm, CONTENT_W, 1.6, fill=1, stroke=0)
 
-    canvas.setFont("Helvetica-Bold", 7.5)
+    canvas.setFont("Helvetica-Bold", 7.2)
     canvas.setFillColor(INK)
     if page_num < 5:
-        canvas.drawString(MARGIN_X, PAGE_H - 13.2 * mm, "APEX PRE-TRADE COMPLIANCE GATE  |  TRESATA WRITTEN BRIEF")
+        canvas.drawString(
+            MARGIN_X,
+            PAGE_H - 13.2 * mm,
+            "APEX PRE-TRADE COMPLIANCE GATE  |  INVESTMENT MANDATE & COMPLIANCE CONTROLS",
+        )
     else:
-        canvas.drawString(MARGIN_X, PAGE_H - 13.2 * mm, "APPENDIX: WHAT I ADDED BEYOND THE AI  |  TRESATA WRITTEN BRIEF")
+        canvas.drawString(
+            MARGIN_X,
+            PAGE_H - 13.2 * mm,
+            "APPENDIX: WHAT I ADDED BEYOND THE AI  |  TRESATA WRITTEN BRIEF",
+        )
 
-    canvas.setFont("Helvetica", 7.5)
+    canvas.setFont("Helvetica", 7.2)
     canvas.setFillColor(MUTED)
     canvas.drawRightString(PAGE_W - MARGIN_X, PAGE_H - 13.2 * mm, "Darla Venkata Sasi Kumar (IIT Madras EP23B026)")
 
-    # Bottom footer line and page number
     canvas.setStrokeColor(BORDER)
     canvas.setLineWidth(0.6)
     canvas.line(MARGIN_X, 9.5 * mm, PAGE_W - MARGIN_X, 9.5 * mm)
 
-    canvas.setFont("Helvetica", 7.3)
+    canvas.setFont("Helvetica", 7.2)
     canvas.setFillColor(MUTED)
     canvas.drawString(MARGIN_X, 6.2 * mm, "Prototype: app.py (4-Dashboard Orange Edition) & evaluate_10_cases.py")
     canvas.drawRightString(PAGE_W - MARGIN_X, 6.2 * mm, f"Page {page_num} of 5")
@@ -458,10 +467,20 @@ def build_pdf(pdf_path: Path) -> None:
         rightMargin=MARGIN_X,
         topMargin=MARGIN_TOP,
         bottomMargin=MARGIN_BOTTOM,
-        title="Tresata Written Brief - Darla Venkata Sasi Kumar",
+        title="Apex Pre-Trade Compliance Gate - Investment Mandate Enforcement & Compliance Controls",
         author="Darla Venkata Sasi Kumar",
     )
-    frame = Frame(MARGIN_X, MARGIN_BOTTOM, CONTENT_W, PAGE_H - MARGIN_TOP - MARGIN_BOTTOM, id="main_frame", topPadding=0, bottomPadding=0, leftPadding=0, rightPadding=0)
+    frame = Frame(
+        MARGIN_X,
+        MARGIN_BOTTOM,
+        CONTENT_W,
+        PAGE_H - MARGIN_TOP - MARGIN_BOTTOM,
+        id="main_frame",
+        topPadding=0,
+        bottomPadding=0,
+        leftPadding=0,
+        rightPadding=0,
+    )
     doc.addPageTemplates([PageTemplate(id="main", frames=[frame], onPage=draw_page_chrome)])
 
     story: List = []
@@ -478,27 +497,29 @@ def build_pdf(pdf_path: Path) -> None:
             "When I interned as a Software Engineer at <b>Apollo Global Management</b>, I built data delivery pipelines and "
             "dashboards across <b>75,000+ holdings and 20,000+ trade records</b>, along with a natural-language query assistant "
             "for portfolio data. That experience got me interested in a deceptively simple question: <i>what actually happens in "
-            "the 60 seconds between a portfolio manager clicking 'Buy' and the order hitting the market?</i> When I dug into "
-            "<b>SEC Rule 206(4)-7</b> and real fund rulebooks (Investment Policy Statements and Form N-1A filings) for this project, "
-            "three things genuinely surprised me:",
+            "the 60 seconds between a portfolio manager clicking 'Buy' and the order hitting the market?</i> When I explored "
+            "institutional <b>Investment Policy Statements (IPS)</b>, SEC Form N-1A registration statements, and compliance-program "
+            "controls for this project, three things genuinely surprised me:",
             styles["body"],
         )
     )
     story.append(
         p(
-            "<b>1. A rule on Page 12 is defined on Page 2:</b> In a fund rulebook, a limit looks straightforward at first glance -- "
-            "for example, <i>'No more than 5.00% of the fund in any single company'</i> (Section 3.01a). But if you flip back to "
-            "Section 1.04, 'Single Company' is redefined to include every majority-owned subsidiary sharing a parent company. "
-            "And if S&amp;P rates a bond BBB- (Investment Grade) while Moody's rates it Ba1 (High-Yield), Section 2.02b says "
-            "the higher rating wins. If you read the limit paragraph without pulling the definition paragraph, you get the math wrong.",
+            "<b>1. A rule on Page 12 is defined on Page 2:</b> In a fund's Investment Policy Statement, a limit looks straightforward "
+            "at first glance -- for example, a synthetic fund mandate limit of <i>'No more than 5.00% of Fund NAV in any single issuer'</i> "
+            "(Section 3.01a). But if you flip back to Section 1.04, 'Single Issuer' is redefined to aggregate every majority-owned "
+            "subsidiary sharing an ultimate parent company. And if S&amp;P rates a bond BBB- (Investment Grade) while Moody's rates "
+            "it Ba1 (High-Yield), Section 2.02b specifies that the higher rating governs. Reading the limit paragraph without pulling "
+            "the cross-referenced definition paragraph gives the wrong answer.",
             styles["bullet"],
         )
     )
     story.append(
         p(
-            "<b>2. Holding a stock above 5% is legal, but buying $1 more is illegal:</b> If NVIDIA rallies and grows to 5.15% of "
-            "the fund on its own (passive market drift), Section 3.03 lets the fund keep holding it without forced selling. "
-            "However, executing even a $50,000 active BUY order while NVIDIA sits above 5.00% is an immediate regulatory breach.",
+            "<b>2. Holding a stock above 5% is compliant, but buying $1 more violates the mandate:</b> If NVIDIA rallies and grows "
+            "to 5.15% of the fund on its own (passive market drift), standard Market Drift Cure Provisions (Section 3.03) allow the "
+            "fund to keep holding it passively. However, executing even a $50,000 active BUY order while NVIDIA sits above 5.00% "
+            "is an immediate active-purchase breach.",
             styles["bullet"],
         )
     )
@@ -506,44 +527,54 @@ def build_pdf(pdf_path: Path) -> None:
         p(
             "<b>3. Why neither SQL rules nor raw LLMs can do this alone:</b> Traditional database checks are great at summing "
             "columns, but they cannot read a 3-sentence deal footnote warning that a rail company gets 22% of its revenue from "
-            "mixed coal corridors, or that a Cayman Islands trust is secretly backed by an oil-and-gas swap basket. On the flip side, "
+            "mixed coal corridors, or that a Cayman Islands trust is backed by an undisclosed oil-and-gas swap basket. Conversely, "
             "pasting 75,000 holdings rows into an LLM burns ~3.6 million tokens, leaks private custodian account numbers, and "
             "routinely fumbles parent-company joins and basis-point math.",
             styles["bullet"],
         )
     )
 
-    story.append(section_heading("2. The Problem We Solve & Why Bad Trades Cost Real Money", "SEC Rule 206(4)-7", styles))
     story.append(
-        callout_box(
-            "<b>Why It Matters in Plain Dollars:</b> If a non-compliant trade slips through and gets executed, the fund breaks "
-            "<b>SEC Rule 206(4)-7</b>. The fund is forced to undo (unwind) the trade in the open market. If the bond or swap is "
-            "sold at a loss, <b>the investment firm must pay for that loss out of its own pocket</b> -- typically $30,000 to $500,000+ "
-            "per trade error in bid-ask slippage, swap termination penalties, and legal audit fees.",
+        section_heading(
+            "2. The Problem We Solve & Regulatory Compliance Context",
+            "Mandate Controls",
             styles,
         )
     )
-    story.append(Spacer(1, 3))
+    story.append(
+        callout_box(
+            "<b>Why Pre-Trade Mandate Enforcement Matters:</b> If a trade violates the fund's investment mandate, it can create "
+            "a mandate breach, trigger costly trade unwinding and remediation, and expose the adviser to compliance and fiduciary "
+            "risks (including reimbursing the fund for resulting unwind losses). The firm's compliance program -- including its "
+            "written controls under <b>SEC Rule 206(4)-7</b> (under the Investment Advisers Act of 1940 for registered investment "
+            "advisers) and <b>SEC Rule 38a-1</b> (under the Investment Company Act of 1940 for registered investment companies) -- "
+            "must be designed to prevent, detect, and address such mandate violations before execution.",
+            styles,
+        )
+    )
+    story.append(Spacer(1, 2.5))
     story.append(
         p(
             "<b>- Who uses this &amp; how often:</b> Pre-trade compliance officers and middle-office desks at multi-asset credit and "
-            "equity funds ($500M to $50B AUM), screening <b>50 to 300+ proposed allocation tickets every trading day</b>.",
+            "equity funds ($500M to $50B AUM), screening <b>50 to 300+ proposed allocation tickets every trading day</b> against fund-specific "
+            "IPS limits, prospectus disclosures (Form N-1A), and institutional client side letters.",
             styles["bullet"],
         )
     )
     story.append(
         p(
             "<b>- What it costs today:</b> Checking a complex bond or swap across PDF rulebooks and side letters takes <b>15 to 30 "
-            "minutes of manual lookup</b>. Rushing causes missed parent-group breaches (forcing costly market unwinds); being overly "
-            "cautious causes false alarms on split-rated bonds like Ford Motor Credit (costing $80k+ in missed execution spreads).",
+            "minutes of manual lookup</b>. Missing a parent-group link or sub-cap forces an open-market trade unwind (costing "
+            "3% to 5% in bid-ask/illiquidity slippage plus external review fees), while misreading a split-rating rule causes "
+            "false blocks on valid trades (costing ~55 bps in replacement spread).",
             styles["bullet"],
         )
     )
     story.append(
         p(
-            "<b>- Why now:</b> As private credit and custom institutional accounts grow, firms manage hundreds of bespoke client "
-            "rulebooks. Hard-coding every new prose side letter into legacy SQL engines takes 3 to 6 weeks. Combining exact Python "
-            "portfolio math with a constrained AI footnote reader cuts verification to seconds with zero math hallucinations.",
+            "<b>- Why now:</b> As private credit and bespoke Separately Managed Accounts (SMAs) grow, firms manage hundreds of "
+            "custom client mandates. Hard-coding every new prose side letter into legacy SQL engines takes 3 to 6 weeks. Combining "
+            "exact Python portfolio math with a constrained AI footnote reader cuts verification to seconds with zero math drift.",
             styles["bullet"],
         )
     )
@@ -551,20 +582,20 @@ def build_pdf(pdf_path: Path) -> None:
     scope_tbl = Table(
         [
             [
-                p("<b>What Is In Scope (Pre-Trade Gate)</b>", styles["th"]),
+                p("<b>What Is In Scope (Pre-Trade Mandate Gate)</b>", styles["th"]),
                 p("<b>What Is Explicitly Out of Scope</b>", styles["th"]),
             ],
             [
                 p(
-                    "- Exact before-and-after trade % math across direct companies and parent groups (Sec 1.04 / 3.01).<br/>"
-                    "- Split credit rating tie-breakers (Sec 2.02b), High-Yield Energy sub-limits (3.02b), and foreign government bond rules (4.01b).<br/>"
-                    "- Reading deal footnotes for hidden coal freight (5.01b) and offshore SPV swaps (5.02), plus tracking <b>Losses Paid vs. Payments Saved</b>.",
+                    "- Exact post-trade NAV % math across direct issuers and parent groups (Sec 1.04 / 3.01) under synthetic IPS thresholds.<br/>"
+                    "- Split credit rating tie-breakers (Sec 2.02b), High-Yield Energy sub-limits (3.02b), and OECD sovereign FX carve-outs (4.01b).<br/>"
+                    "- Screening deal footnotes for coal freight ambiguity (5.01b) and orphan SPV swaps (5.02), and auditing incremental loss avoidance.",
                     styles["td"],
                 ),
                 p(
                     "- Broker order-book routing, execution slicing, and FIX protocol market connectivity.<br/>"
                     "- Post-trade T+1 custodian bank wire settlement and cash reconciliation.<br/>"
-                    "- Predicting stock/bond price returns or rewriting legal contracts automatically.",
+                    "- Predicting security returns or offering automated legal advice without CCO review.",
                     styles["td"],
                 ),
             ],
@@ -581,8 +612,8 @@ def build_pdf(pdf_path: Path) -> None:
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 6),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 3.8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3.8),
             ]
         )
     )
@@ -604,7 +635,7 @@ def build_pdf(pdf_path: Path) -> None:
     )
     story.append(Spacer(1, 2))
     story.append(draw_architecture_diagram())
-    story.append(Spacer(1, 5))
+    story.append(Spacer(1, 4))
 
     story.append(section_heading("2.2 Where Knowledge Lives & How Rules Stay Up to Date", "System Boundaries", styles))
     boundary_tbl = Table(
@@ -616,9 +647,9 @@ def build_pdf(pdf_path: Path) -> None:
                 p("<b>Why It Works &amp; How We Verify It</b>", styles["th"]),
             ],
             [
-                p("<b>1. Rulebook Search</b><br/>(<code>src/retriever.py</code>)", styles["td"]),
+                p("<b>1. Mandate Search</b><br/>(<code>src/retriever.py</code>)", styles["td"]),
                 p("<b>100% Exact</b><br/>(BM25 + Graph)", styles["td_bold"]),
-                p("Versioned markdown rulebook (<code>fund_mandate_ips.md</code>)", styles["td"]),
+                p("Versioned mandate file (<code>fund_mandate_ips.md</code>)", styles["td"]),
                 p("Finds exact section numbers and automatically pulls linked definitions (e.g., Sec 3.01 -> Sec 1.04) with character offsets.", styles["td"]),
             ],
             [
@@ -630,14 +661,14 @@ def build_pdf(pdf_path: Path) -> None:
             [
                 p("<b>3. Footnote Reader</b><br/>(<code>src/agent_graph.py</code>)", styles["td"]),
                 p("<b>Probabilistic</b><br/>(OpenRouter LLM)", styles["td_bold"]),
-                p("Retrieved rulebook clauses + deal supplement notes", styles["td"]),
+                p("Retrieved IPS clauses + deal supplement notes", styles["td"]),
                 p("Reads unstructured deal prose to spot gray areas (mixed coal rail corridors in Sec 5.01b or opaque Cayman SPVs in Sec 5.02).", styles["td"]),
             ],
             [
                 p("<b>4. Final Safety Gate</b><br/>(<code>src/agent_graph.py</code>)", styles["td"]),
                 p("<b>100% Exact</b><br/>(State Lock)", styles["td_bold"]),
                 p("<code>verify_verbatim_quote()</code> + Asymmetric Lock", styles["td"]),
-                p("Checks that the cited quote exists character-for-character in the rulebook. The AI can never turn a math breach into an approval.", styles["td"]),
+                p("Checks that the cited quote exists character-for-character in the mandate. The AI can never turn a math breach into an approval.", styles["td"]),
             ],
         ],
         colWidths=[98, 72, 118, CONTENT_W - 288],
@@ -654,28 +685,29 @@ def build_pdf(pdf_path: Path) -> None:
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 5),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-                ("TOPPADDING", (0, 0), (-1, -1), 3.5),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 3.5),
+                ("TOPPADDING", (0, 0), (-1, -1), 3.3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3.3),
             ]
         )
     )
     story.append(boundary_tbl)
-    story.append(Spacer(1, 3))
+    story.append(Spacer(1, 2.5))
 
     story.append(
         p(
-            "<b>- What happens when a rule changes or expires:</b> No rules or limits are baked into model weights. Every threshold "
-            "lives in <code>fund_schema.yaml</code> and <code>fund_mandate_ips.md</code> (tagged with Document ID "
-            "<code>IPS-APEX-2026-V4</code>). When the board updates a cap or adds a client side letter, updating the file immediately "
-            "updates Step 1 and Step 2 with zero retraining. Past trade logs keep the exact Mandate ID that was active when the trade ran.",
+            "<b>- What happens when a fund mandate rule is amended or expires:</b> No rules or limits are baked into model weights. "
+            "Every contractual threshold lives in <code>fund_schema.yaml</code> and <code>fund_mandate_ips.md</code> (tagged with "
+            "Document ID <code>IPS-APEX-2026-V4</code>). When a fund board amends an IPS cap or adds a client side letter, updating "
+            "the file immediately updates Step 1 and Step 2 with zero retraining. Past audit logs remain bound to the Mandate ID "
+            "active at trade time (supporting annual compliance reviews under Advisers Act Rule 206(4)-7 and 1940 Act Rule 38a-1).",
             styles["bullet"],
         )
     )
     story.append(
         p(
-            "<b>- Adapting to another country (e.g., Europe UCITS or India SEBI):</b> Our prototype enforces US SEC 1940 Act rules. "
-            "Moving to European UCITS funds (which enforce the '5/10/40' rule: positions over 5% cannot sum to more than 40% of the fund) "
-            "only requires swapping the rulebook file and adding a 4-line summation check in Step 2.",
+            "<b>- Adapting to another regulatory regime (e.g., EU UCITS or India SEBI):</b> Our testbed models a US institutional "
+            "fund mandate alongside SEC Form N-1A/N-PORT schemas. Moving to European UCITS funds (which enforce statutory '5/10/40' "
+            "issuer concentration rules) requires only swapping the mandate file and adding a 4-line summation check in Step 2.",
             styles["bullet"],
         )
     )
@@ -685,7 +717,7 @@ def build_pdf(pdf_path: Path) -> None:
         p(
             "Compliance officers should not have to read raw JSON or backend code on screen. Modeled after the <b>AEGIS</b> visual "
             "system and <b>Emil Kowalski's</b> motion engineering principles, our Streamlit app (<code>app.py</code>) uses a "
-            "<b>Warm Electric Orange (<code>#F04E14</code>)</b> theme and organizes the workflow into four clean, plain-English dashboards:",
+            "<b>Warm Electric Orange (<code>#F04E14</code>)</b> theme and organizes the workflow into four plain-English dashboards:",
             styles["body"],
         )
     )
@@ -697,15 +729,15 @@ def build_pdf(pdf_path: Path) -> None:
             ],
             [
                 p("<b>02 - Losses vs. Savings</b>", styles["td_bold"]),
-                p("Compares Firm P&amp;L <b>Without Pre-Trade Gate (-$277,500 loss/cost)</b> vs. <b>With Our Gate ($0 loss paid, +$375,500 saved)</b>, breaking savings down across forced unwind slippage avoided (+$167,000), false alarms prevented (+$166,500), and SEC review fees saved (+$42,000).", styles["td"]),
+                p("Separates <b>Incremental Value Added by Our Gate (+$184,500 realized across TC-03, TC-04, TC-05)</b> from <b>Ambiguous Exposure Held for CCO Review ($93,000 in TC-09, TC-10)</b> and <b>Baseline Protection ($98,000 caught by both systems in TC-02, TC-07, TC-08)</b>.", styles["td"]),
             ],
             [
                 p("<b>03 - All Activity &amp; Protection</b>", styles["td_bold"]),
-                p("A dedicated visual Bento dashboard across all 10 orders ($10.70M screened: $3.90M safely executed vs. $6.80M stopped/held), complete with an outcome donut ring, interactive decision filters, inline SVG icons, and per-trade P&amp;L protection strips.", styles["td"]),
+                p("A dedicated visual Bento dashboard across all 10 orders ($10.70M screened: 3 approved, 5 blocked, 2 held for CCO review), complete with an outcome donut ring, interactive decision filters, inline SVG icons, and transparent per-trade attribution.", styles["td"]),
             ],
             [
                 p("<b>04 - Fund Portfolio ($100M)</b>", styles["td_bold"]),
-                p("Displays the $100.0M settled Form N-PORT portfolio ($82.35M across 12 holdings + $17.65M cash) with parent-group concentration bars, 5.00% limit markers, and passive market-drift indicators (e.g., NVIDIA at 5.15%).", styles["td"]),
+                p("Displays the $100.0M settled Form N-PORT portfolio ($82.35M across 12 holdings + $17.65M cash) with parent-group concentration bars, 5.00% IPS limit markers, and passive market-drift indicators (e.g., NVIDIA at 5.15%).", styles["td"]),
             ],
         ],
         colWidths=[115, CONTENT_W - 115],
@@ -719,8 +751,8 @@ def build_pdf(pdf_path: Path) -> None:
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 6),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                ("TOPPADDING", (0, 0), (-1, -1), 3.2),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 3.2),
+                ("TOPPADDING", (0, 0), (-1, -1), 3.0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3.0),
             ]
         )
     )
@@ -745,12 +777,12 @@ def build_pdf(pdf_path: Path) -> None:
                 p("<b>Why It Fails on Real Institutional Trades</b>", styles["th"]),
             ],
             [
-                p("<b>1. One Big LLM Call Over All Holdings + Rulebook</b>", styles["td_bold"]),
+                p("<b>1. One Big LLM Call Over All Holdings + Mandate</b>", styles["td_bold"]),
                 p("Sending 75,000 holdings rows (~3.6M tokens) to an LLM costs $10-$30 per trade check, takes 30+ seconds, exposes private custodian bank codes to external APIs, and routinely miscalculates parent-company sums and 5.00% vs. 5.01% boundary math.", styles["td"]),
             ],
             [
                 p("<b>2. Pure Vector Embedding Search (Dense RAG Only)</b>", styles["td_bold"]),
-                p("Legal rulebooks rely on exact section numbers (<code>Section 3.01(b)</code>) and rating symbols (<code>Ba1</code>, <code>BBB-</code>). Dense embeddings blur negations and miss multi-hop definitions (pulling Section 3.01 without pulling Section 1.04). Our BM25 + TF-IDF + Cross-Reference Graph fixes both.", styles["td"]),
+                p("Legal mandates rely on exact section numbers (<code>Section 3.01(b)</code>) and rating symbols (<code>Ba1</code>, <code>BBB-</code>). Dense embeddings blur negations and miss multi-hop definitions (pulling Section 3.01 without pulling Section 1.04). Our BM25 + TF-IDF + Cross-Reference Graph fixes both.", styles["td"]),
             ],
             [
                 p("<b>3. 100% Hard-Coded SQL Rules (No AI Reader)</b>", styles["td_bold"]),
@@ -815,7 +847,7 @@ def build_pdf(pdf_path: Path) -> None:
         )
     )
 
-    story.append(section_heading("3.3 Managing Real-World Risks & Human-in-the-Loop Governance", "Risk & Liability", styles))
+    story.append(section_heading("3.3 Managing Real-World Risks & Human-in-the-Loop Governance", "Risk & Governance", styles))
     risk_tbl = Table(
         [
             [
@@ -825,12 +857,12 @@ def build_pdf(pdf_path: Path) -> None:
             ],
             [
                 p("<b>1. Unequal Cost of Errors</b><br/>(False Positive vs. False Negative)", styles["td_bold"]),
-                p("Pausing a good trade costs 2 minutes of officer review. Approving a bad trade triggers SEC Rule 206(4)-7 forced unwinds and $50k-$500k+ out-of-pocket firm loss.", styles["td"]),
+                p("Pausing a good trade costs 2 minutes of officer review. Approving a mandate breach triggers forced market unwinds, remediation, and adviser reimbursement risk.", styles["td"]),
                 p("<b>One-Way Safety Lock:</b> Step 4 is biased strictly toward safety. The AI can escalate a clean math check to <code>HELD FOR OFFICER</code>, but it can <b>never</b> override a Step 2 math breach.", styles["td"]),
             ],
             [
-                p("<b>2. Outdated Rulebooks</b><br/>(Stale Thresholds)", styles["td_bold"]),
-                p("Checking today's trade against last year's concentration limit or an expired client carve-out.", styles["td"]),
+                p("<b>2. Outdated Mandates</b><br/>(Stale IPS Thresholds)", styles["td_bold"]),
+                p("Checking today's trade against a superseded IPS cap or an expired client side-letter carve-out.", styles["td"]),
                 p("Every trade decision stamps the active Mandate ID (<code>IPS-APEX-2026-V4</code>), effective date, and exact character span <code>[char_start..char_end]</code> into the audit record.", styles["td"]),
             ],
             [
@@ -839,12 +871,12 @@ def build_pdf(pdf_path: Path) -> None:
                 p("<b>YAML Schema Pruning (<code>fund_schema.yaml</code>):</b> Strips private columns locally and sends only pre-summed numbers (<b>240 tokens instead of 3.6M tokens -- a 99.993% cut</b>).", styles["td"]),
             ],
             [
-                p("<b>4. Regulatory Accountability</b><br/>(Who Signs Off Legally)", styles["td_bold"]),
-                p("Under SEC Rule 206(4)-7, legal responsibility rests on a human Chief Compliance Officer (CCO), never an AI.", styles["td"]),
-                p("<b>Mandatory Officer Sign-Off Queue:</b> Clear breaches are blocked automatically; qualitative gray areas (<code>TC-09</code>, <code>TC-10</code>) are held until a human officer records written sign-off.", styles["td"]),
+                p("<b>4. Fiduciary &amp; CCO Governance</b><br/>(Advisers Act 206(4)-7 / 1940 Act 38a-1)", styles["td_bold"]),
+                p("Under SEC Rule 206(4)-7 (advisers) and Rule 38a-1 (registered funds), oversight responsibility rests on a designated human Chief Compliance Officer (CCO), never an AI.", styles["td"]),
+                p("<b>Mandatory Officer Sign-Off Queue:</b> Quantitative breaches are blocked automatically; qualitative gray areas (<code>TC-09</code>, <code>TC-10</code>) are held until a human officer records written sign-off.", styles["td"]),
             ],
         ],
-        colWidths=[112, 165, CONTENT_W - 277],
+        colWidths=[115, 162, CONTENT_W - 277],
     )
     risk_tbl.setStyle(
         TableStyle(
@@ -858,8 +890,8 @@ def build_pdf(pdf_path: Path) -> None:
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 5),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-                ("TOPPADDING", (0, 0), (-1, -1), 3.8),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 3.8),
+                ("TOPPADDING", (0, 0), (-1, -1), 3.6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3.6),
             ]
         )
     )
@@ -867,15 +899,23 @@ def build_pdf(pdf_path: Path) -> None:
     story.append(PageBreak())
 
     # =========================================================================
-    # PAGE 4: 10-CASE BENCHMARK, LOSSES VS. SAVINGS & HONEST AI FAILURES
+    # PAGE 4: 10-CASE BENCHMARK, RECONCILED FINANCIAL ATTRIBUTION & AI FAILURES
     # =========================================================================
-    story.append(section_heading("4.1 Testing on 10 Realistic Trades: Accuracy & Money Saved", "10 / 10 Benchmark", styles))
+    story.append(
+        section_heading(
+            "4.1 10-Trade Benchmark & Transparent Financial Attribution",
+            "Reconciled Evaluation",
+            styles,
+        )
+    )
     story.append(
         p(
-            "We tested our prototype (<code>evaluate_10_cases.py</code> and <code>app.py</code>) across <b>10 realistic proposed "
-            "orders ($10.70M total order flow)</b> against a $100.0M settled portfolio using live free-tier models on OpenRouter. "
-            "A naive single-ticket checker gets only <b>5/10 (50%)</b> right and exposes the firm to <b>-$277,500</b> in unwind "
-            "losses and false-alarm costs. Our 4-step gate gets <b>10/10 (100%)</b> and saves <b>+$375,500 ($0 loss paid)</b>:",
+            "We evaluated our 4-step gate across <b>10 proposed trades ($10.70M order flow)</b> against a $100.0M settled portfolio. "
+            "To avoid over-claiming savings on trades that a basic single-ticket checker already catches, the table below explicitly "
+            "separates: (1) <b>Incremental Savings Realized by Our Gate (+$184,500)</b> on the 2 unsafe approvals caught (<code>TC-03</code>, "
+            "<code>TC-05</code>) and 1 false block fixed (<code>TC-04</code>); (2) <b>Ambiguous Exposure Held for CCO Review ($93,000)</b> "
+            "on the 2 escalated trades (<code>TC-09</code>, <code>TC-10</code>, which are paused for human decision, not claimed as "
+            "auto-realized savings); and (3) <b>Baseline Protection ($98,000)</b> on the 3 breaches blocked by both systems (<code>$0</code> incremental):",
             styles["body"],
         )
     )
@@ -883,94 +923,94 @@ def build_pdf(pdf_path: Path) -> None:
     eval_rows = [
         [
             p("<b>ID</b>", styles["th"]),
-            p("<b>Proposed Order &amp; What Makes It Tricky</b>", styles["th"]),
+            p("<b>Proposed Order &amp; Mandate Rule Tested</b>", styles["th"]),
             p("<b>Basic Check</b>", styles["th"]),
             p("<b>Our Gate</b>", styles["th"]),
-            p("<b>Loss (No Gate)</b>", styles["th"]),
-            p("<b>Money Saved</b>", styles["th"]),
+            p("<b>Baseline / At-Risk</b>", styles["th"]),
+            p("<b>Incremental Value (Ours)</b>", styles["th"]),
         ],
         [
             p("<b>TC-01</b>", styles["td_bold"]),
-            p("<b>Microsoft Corp</b> ($1.20M AAA Bond) -- Clean trade; rises 3.10% -> 4.30% (&lt;= 5% cap).", styles["td"]),
+            p("<b>Microsoft Corp</b> ($1.20M AAA Bond) -- Clean; 3.10% -> 4.30% (&lt;= 5% IPS cap).", styles["td"]),
             p("APPROVED", styles["badge_pass"]),
             p("APPROVED", styles["badge_pass"]),
             p("$0", styles["td"]),
-            p("$0 (Safe)", styles["td"]),
+            p("$0 (Both pass)", styles["badge_muted"]),
         ],
         [
             p("<b>TC-02</b>", styles["td_bold"]),
-            p("<b>Apple Inc</b> ($1.25M AA+ Bond) -- Direct company breach: rises 4.20% -> 5.45% (&gt; 5% cap).", styles["td"]),
+            p("<b>Apple Inc</b> ($1.25M AA+ Bond) -- Direct company breach: 4.20% -> 5.45% (&gt; 5%).", styles["td"]),
             p("BLOCKED", styles["badge_breach"]),
             p("BLOCKED", styles["badge_breach"]),
-            p("$0", styles["td"]),
-            p("<b>+$45,000</b>", styles["badge_pass"]),
+            p("$45,000 base", styles["td"]),
+            p("$0 (Both block)", styles["badge_muted"]),
         ],
         [
             p("<b>TC-03</b>", styles["td_bold"]),
-            p("<b>Florida Power &amp; Light</b> ($1.30M Bond) -- 0% direct, but parent NextEra hits 5.40% (&gt; 5%).", styles["td"]),
+            p("<b>Florida Power &amp; Light</b> ($1.30M) -- 0% direct, but parent NextEra hits 5.40% (&gt; 5%).", styles["td"]),
             p("APPROVED (Miss!)", styles["badge_breach"]),
             p("BLOCKED", styles["badge_breach"]),
-            p("<b>-$68,000</b>", styles["badge_breach"]),
-            p("<b>+$68,000</b>", styles["badge_pass"]),
+            p("-$68,000 loss", styles["badge_breach"]),
+            p("<b>+$68,000 Saved</b>", styles["badge_pass"]),
         ],
         [
             p("<b>TC-04</b>", styles["td_bold"]),
-            p("<b>Ford Motor Credit</b> ($1.50M Split-Rated BBB-/Ba1) -- Higher rating wins (Sec 2.02b); stays IG.", styles["td"]),
+            p("<b>Ford Motor Credit</b> ($1.50M BBB-/Ba1) -- Higher rating governs (Sec 2.02b); IG.", styles["td"]),
             p("BLOCKED (False!)", styles["badge_breach"]),
             p("APPROVED", styles["badge_pass"]),
-            p("<b>-$82,500</b>", styles["badge_breach"]),
-            p("<b>+$82,500</b>", styles["badge_pass"]),
+            p("-$82,500 cost", styles["badge_breach"]),
+            p("<b>+$82,500 Saved</b>", styles["badge_pass"]),
         ],
         [
             p("<b>TC-05</b>", styles["td_bold"]),
-            p("<b>Permian Resources</b> ($700k BB Energy) -- Total HY is 14.9% (&lt;=15%), but HY Energy hits 5.20% (&gt;5%).", styles["td"]),
+            p("<b>Permian Resources</b> ($700k BB Energy) -- Total HY 14.9%, but HY Energy 5.20% (&gt; 5%).", styles["td"]),
             p("APPROVED (Miss!)", styles["badge_breach"]),
             p("BLOCKED", styles["badge_breach"]),
-            p("<b>-$34,000</b>", styles["badge_breach"]),
-            p("<b>+$34,000</b>", styles["badge_pass"]),
+            p("-$34,000 loss", styles["badge_breach"]),
+            p("<b>+$34,000 Saved</b>", styles["badge_pass"]),
         ],
         [
             p("<b>TC-06</b>", styles["td_bold"]),
-            p("<b>UK Treasury Gilt</b> ($1.20M Unhedged GBP Gov Bond) -- Valid OECD government carve-out (8.70% &lt;= 10%).", styles["td"]),
+            p("<b>UK Treasury Gilt</b> ($1.20M GBP Gov Bond) -- Valid OECD sovereign carve-out (8.70%).", styles["td"]),
             p("APPROVED", styles["badge_pass"]),
             p("APPROVED", styles["badge_pass"]),
             p("$0", styles["td"]),
-            p("$0 (Safe)", styles["td"]),
+            p("$0 (Both pass)", styles["badge_muted"]),
         ],
         [
             p("<b>TC-07</b>", styles["td_bold"]),
-            p("<b>Siemens AG</b> ($1.00M Unhedged EUR Corp Bond) -- OECD carve-out is for governments only, not corporates.", styles["td"]),
+            p("<b>Siemens AG</b> ($1.00M Unhedged EUR Corp) -- OECD FX carve-out is for sovereigns only.", styles["td"]),
             p("BLOCKED", styles["badge_breach"]),
             p("BLOCKED", styles["badge_breach"]),
-            p("$0", styles["td"]),
-            p("<b>+$38,000</b>", styles["badge_pass"]),
+            p("$38,000 base", styles["td"]),
+            p("$0 (Both block)", styles["badge_muted"]),
         ],
         [
             p("<b>TC-08</b>", styles["td_bold"]),
-            p("<b>NVIDIA Corp</b> ($50k Stock Buy) -- Already at 5.15% from stock gains; holding is fine, buying is banned.", styles["td"]),
+            p("<b>NVIDIA Corp</b> ($50k Stock Buy) -- At 5.15% passive drift; active BUY is prohibited.", styles["td"]),
             p("BLOCKED", styles["badge_breach"]),
             p("BLOCKED", styles["badge_breach"]),
-            p("$0", styles["td"]),
-            p("<b>+$15,000</b>", styles["badge_pass"]),
+            p("$15,000 base", styles["td"]),
+            p("$0 (Both block)", styles["badge_muted"]),
         ],
         [
             p("<b>TC-09</b>", styles["td_bold"]),
-            p("<b>Heartland Rail</b> ($1.00M Bond) -- 4.2% direct coal, but footnote reveals 22% mixed coal rail freight.", styles["td"]),
+            p("<b>Heartland Rail</b> ($1.00M Bond) -- 4.2% coal, but footnote shows 22% mixed coal rail.", styles["td"]),
             p("APPROVED (Miss!)", styles["badge_breach"]),
-            p("HELD (Officer)", styles["badge_hold"]),
-            p("<b>-$41,000</b>", styles["badge_breach"]),
-            p("<b>+$41,000</b>", styles["badge_pass"]),
+            p("HELD (CCO)", styles["badge_hold"]),
+            p("$41,000 at-risk", styles["badge_hold"]),
+            p("<b>Escalated ($1.0M)</b>", styles["badge_hold"]),
         ],
         [
             p("<b>TC-10</b>", styles["td_bold"]),
-            p("<b>Cayman Emerald Trust</b> ($1.50M SPV Note) -- Footnote reveals orphan SPV backed by oil &amp; gas swap basket.", styles["td"]),
+            p("<b>Cayman Emerald Trust</b> ($1.50M SPV) -- Footnote shows undisclosed oil/gas swap basket.", styles["td"]),
             p("APPROVED (Miss!)", styles["badge_breach"]),
-            p("HELD (Officer)", styles["badge_hold"]),
-            p("<b>-$52,000</b>", styles["badge_breach"]),
-            p("<b>+$52,000</b>", styles["badge_pass"]),
+            p("HELD (CCO)", styles["badge_hold"]),
+            p("$52,000 at-risk", styles["badge_hold"]),
+            p("<b>Escalated ($1.5M)</b>", styles["badge_hold"]),
         ],
     ]
-    eval_tbl = Table(eval_rows, colWidths=[30, CONTENT_W - 262, 66, 62, 52, 52])
+    eval_tbl = Table(eval_rows, colWidths=[33, CONTENT_W - 285, 62, 54, 62, 74])
     eval_tbl.setStyle(
         TableStyle(
             [
@@ -978,44 +1018,42 @@ def build_pdf(pdf_path: Path) -> None:
                 ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, SURFACE]),
                 ("GRID", (0, 0), (-1, -1), 0.45, BORDER),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 4),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-                ("TOPPADDING", (0, 0), (-1, -1), 2.3),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 2.3),
+                ("LEFTPADDING", (0, 0), (-1, -1), 3.8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 3.8),
+                ("TOPPADDING", (0, 0), (-1, -1), 2.1),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2.1),
             ]
         )
     )
     story.append(eval_tbl)
-    story.append(Spacer(1, 4))
+    story.append(Spacer(1, 3.5))
     story.append(draw_savings_chart())
-    story.append(Spacer(1, 4))
+    story.append(Spacer(1, 3.5))
 
     story.append(section_heading("4.2 Honest Report: Three Places Where the AI Struggled in Testing", "Failure Modes & Fixes", styles))
     story.append(
         p(
             "<b>1. Free-tier reasoning models running out of tokens inside <code>&lt;think&gt;</code> tags:</b> On our first live "
-            "OpenRouter test run, a reasoning model spent its entire 500-token budget thinking to itself inside "
+            "OpenRouter test run, a reasoning model spent its entire 500-token budget thinking inside "
             "<code>&lt;think&gt;...&lt;/think&gt;</code> tags and cut off before outputting JSON. We fixed this by stripping "
-            "<code>&lt;think&gt;</code> blocks in <code>src/agent_graph.py</code> and routing to fast instruction-tuned models first.",
+            "<code>&lt;think&gt;</code> blocks in <code>src/agent_graph.py</code> and routing to instruction-tuned models first.",
             styles["bullet"],
         )
     )
     story.append(
         p(
             "<b>2. Minor quote paraphrasing on 4 out of 10 live runs:</b> Smaller free-tier models occasionally dropped a comma or "
-            "paraphrased a word when copying the rulebook quote. Our Step 4 verifier (<code>verify_verbatim_quote()</code>) caught "
-            "all 4 instances and automatically anchored the citation to the exact character span <code>[char_start..char_end]</code> "
-            "from Step 1 so the officer always sees the true legal text.",
+            "paraphrased a word when copying the mandate quote. Our Step 4 verifier (<code>verify_verbatim_quote()</code>) caught "
+            "all 4 instances and automatically anchored the citation to the exact character span <code>[char_start..char_end]</code>.",
             styles["bullet"],
         )
     )
     story.append(
         p(
-            "<b>3. Free-tier API latency swings (7.5s to 68.6s) &amp; what I would build next:</b> While Steps 1, 2, and 4 finish "
-            "locally in <b>under 5 milliseconds</b>, waiting on a free-tier LLM for every trade is too slow for a high-speed trading "
-            "desk. Before scaling this to production, I would enable a <b>Two-Tier Fast Path</b>: 90% of standard bond and stock orders "
-            "have no special deal footnotes or Cayman SPV wrappers, so they can clear Steps 1 &amp; 2 in <b>&lt; 5 ms</b>, calling the "
-            "AI reader only when unstructured rider prose is attached.",
+            "<b>3. Free-tier API latency swings (7.5s to 68.6s) &amp; Two-Tier Fast Path:</b> While Steps 1, 2, and 4 finish "
+            "locally in <b>under 5 milliseconds</b>, waiting on a free-tier LLM for every trade is too slow for a high-speed desk. "
+            "In production, 90% of standard bond and stock orders have no special deal footnotes or SPV wrappers, so they clear "
+            "Steps 1 &amp; 2 in <b>&lt; 5 ms</b>, calling Step 3 (AI) only when unstructured rider prose is attached.",
             styles["bullet"],
         )
     )
@@ -1035,15 +1073,15 @@ def build_pdf(pdf_path: Path) -> None:
     story.append(
         p(
             "<b>1. Finding real-world compliance traps:</b> <i>'Give me concrete examples of how institutional bond funds accidentally "
-            "violate their SEC Form N-1A mandate even when their basic SQL pre-trade checks on single-issuer % and credit rating pass.'</i>",
+            "violate their Investment Policy Statement (IPS) or Form N-1A mandate even when basic SQL checks on single-issuer % pass.'</i>",
             styles["bullet"],
         )
     )
     story.append(
         p(
-            "<b>2. Drafting realistic cross-referenced legal clauses:</b> <i>'Draft an institutional Investment Policy Statement "
-            "(IPS) where the 5% single-company cap in Article III depends on a parent-group definition in Article I, a split-rating "
-            "tie-breaker in Article II, an OECD government bond currency exception in Article IV, and qualitative coal/SPV rules in Article V.'</i>",
+            "<b>2. Drafting realistic cross-referenced mandate clauses:</b> <i>'Draft an institutional Investment Policy Statement "
+            "(IPS) where the 5% single-issuer cap in Article III depends on a parent-group definition in Article I, a split-rating "
+            "tie-breaker in Article II, an OECD sovereign currency exception in Article IV, and qualitative coal/SPV rules in Article V.'</i>",
             styles["bullet"],
         )
     )
@@ -1065,15 +1103,15 @@ def build_pdf(pdf_path: Path) -> None:
             ],
             [
                 p("<b>1. 'Use a Text-to-SQL agent to query the holdings table dynamically on every trade.'</b>", styles["td_bold"]),
-                p("<b>How I knew:</b> At <b>Apollo Global Management</b>, I built a natural-language-to-DB assistant over 75K+ holdings and 20K+ trades. For ad-hoc analyst questions, a 98% query accuracy rate is great. For pre-trade compliance, if an LLM forgets <code>GROUP BY ultimate_parent_id</code> even once, the firm executes an illegal trade and pays out-of-pocket unwind losses. I replaced dynamic query generation with fixed, tested aggregation code in Step 2.", styles["td"]),
+                p("<b>How I knew:</b> At <b>Apollo Global Management</b>, I built a natural-language-to-DB assistant over 75K+ holdings and 20K+ trades. For ad-hoc analyst questions, a 98% query accuracy rate is great. For pre-trade compliance, if an LLM forgets <code>GROUP BY ultimate_parent_id</code> even once, the fund executes a mandate breach. I replaced dynamic query generation with fixed, tested aggregation code in Step 2.", styles["td"]),
             ],
             [
                 p("<b>2. 'Chunk the rulebook into 500-token slices and use vector embeddings.'</b>", styles["td_bold"]),
                 p("<b>How I knew:</b> From building my <b>Vector Space Retrieval Engine</b> (benchmarking BM25, TF-IDF, LSA, and WordNet expansion on the Cranfield corpus), I knew dense embeddings struggle with exact section codes (<code>Section 3.01(b)</code>) and sever cross-references when a limit in Article III relies on a definition in Article I. I built a hybrid BM25 + TF-IDF retriever with a 1-hop cross-reference graph expander instead.", styles["td"]),
             ],
             [
-                p("<b>3. 'Show the full multi-node backend trace and raw JSON on the main screen.'</b>", styles["td_bold"]),
-                p("<b>How I knew:</b> Compliance officers care about two things: <i>'Can I execute this trade?'</i> and <i>'How much loss did we just avoid?'</i> I stripped all backend jargon from the UI, redesigned it around <b>AEGIS + Emil Kowalski's</b> visual principles in a Warm Electric Orange palette, and built dedicated dashboards for <b>Losses Paid vs. Payments Saved</b> and <b>All Activity &amp; Protection</b>.", styles["td"]),
+                p("<b>3. 'Claim all blocked trades as incremental AI savings and label IPS caps as SEC statutory limits.'</b>", styles["td_bold"]),
+                p("<b>How I knew:</b> Basic SQL checks already block simple breaches (<code>TC-02</code>, <code>TC-07</code>, <code>TC-08</code>), and <code>TC-09</code>/<code>TC-10</code> are held for officer review rather than auto-blocked. I separated <b>+$184,500 in incremental value</b> (<code>TC-03</code>, <code>TC-04</code>, <code>TC-05</code>) from <b>$93,000 held for review</b> and <b>$98,000 baseline</b>, and distinguished synthetic IPS caps from SEC Rule 206(4)-7 (Advisers Act) and Rule 38a-1 (1940 Act).", styles["td"]),
             ],
         ],
         colWidths=[148, CONTENT_W - 148],
@@ -1089,8 +1127,8 @@ def build_pdf(pdf_path: Path) -> None:
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 6),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 3.8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3.8),
             ]
         )
     )
@@ -1100,9 +1138,10 @@ def build_pdf(pdf_path: Path) -> None:
     story.append(section_heading("A.3 What Came Directly From Me", "Practitioner Contributions", styles))
     story.append(
         p(
-            "<b>- Framing compliance as Firm P&amp;L Protection (+$375,500 Saved / $0 Loss Paid):</b> Instead of treating compliance "
-            "as an abstract pass/fail label, I modeled the real dollar cost of SEC Rule 206(4)-7 trade errors -- quantifying forced-sale "
-            "unwind slippage (+$167,000), false-alarm spread costs (+$166,500), and remediation fees (+$42,000) across all 10 orders.",
+            "<b>- Auditable Incremental Attribution (+$184,500 Incremental / $93,000 Escalated / $98,000 Baseline):</b> Instead of "
+            "lumping all 10 test cases into a single un-reconciled total, I broke down every dollar by case and counterfactual "
+            "baseline: 2 hidden breaches blocked (+$102,000), 1 false block fixed (+$82,500), 2 ambiguous trades escalated ($2.50M "
+            "notional / $93,000 exposure paused for CCO sign-off), and 3 baseline breaches excluded from incremental claims ($98,000).",
             styles["bullet"],
         )
     )
@@ -1117,8 +1156,8 @@ def build_pdf(pdf_path: Path) -> None:
     story.append(
         p(
             "<b>- Modeling the passive market-drift vs. active purchase lockout (TC-08):</b> Most prototypes check <code>weight &lt;= 5%</code> "
-            "statically. I explicitly modeled the transition where holding a drifted position (NVIDIA at 5.15%) is legal, but adding "
-            "a $50,000 active BUY order is blocked.",
+            "statically. I explicitly modeled the transition where holding a drifted position (NVIDIA at 5.15%) is compliant under "
+            "Section 3.03, but adding a $50,000 active BUY order is blocked.",
             styles["bullet"],
         )
     )
@@ -1168,8 +1207,6 @@ def verify_and_render_pngs(pdf_path: Path, tmp_dir: Path) -> None:
 
 
 def main() -> None:
-    import shutil
-
     base_dir = Path(__file__).resolve().parent
     pdf_path = base_dir / "TRESATA_WRITTEN_BRIEF.pdf"
     output_pdf_dir = base_dir / "output" / "pdf"
@@ -1181,9 +1218,6 @@ def main() -> None:
     shutil.copy2(pdf_path, output_pdf_path)
     print(f"Generated {pdf_path} and {output_pdf_path} ({pdf_path.stat().st_size:,} bytes)")
     verify_and_render_pngs(pdf_path, tmp_dir)
-    # Clean up intermediate tmp/pdfs/ directory per openai/skills/pdf/SKILL.md
-    shutil.rmtree(tmp_dir.parent, ignore_errors=True)
-    print("Cleaned up intermediate tmp/pdfs/ directory after verification.")
 
 
 if __name__ == "__main__":
