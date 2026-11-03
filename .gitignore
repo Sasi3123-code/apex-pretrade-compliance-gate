@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+tmp/
+ML_Resume.pdf
+G5J2VVyAiQwRJWrGtIqsrnJrGMOAHcquRkxndf6E.pdf
+\[EXTERNAL\]*

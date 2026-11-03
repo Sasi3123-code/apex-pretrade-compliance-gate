@@ -1,0 +1,2616 @@
+{
+  "benchmark_timestamp": "2026-10-31T21:48:30Z",
+  "metrics": {
+    "total_test_cases": 10,
+    "naive_single_llm_accuracy": "5/10 (50%)",
+    "node3_llm_with_context_accuracy": "10/10 (100%)",
+    "hybrid_4node_architecture_accuracy": "10/10 (100%)",
+    "critic_interventions_count": 0,
+    "fallback_grounding_count": 4
+  },
+  "results": [
+    {
+      "test_id": "TC-01",
+      "title": "Clean Investment-Grade Corporate Bond Addition",
+      "description": "Routine purchase of $1.20M Microsoft Corp (AAA/Aaa) USD corporate bond. Brings single-issuer exposure from 3.10% to 4.30% (<= 5.00% limit).",
+      "expected_verdict": "PASS",
+      "expected_primary_clause": "Section 3.01(a)",
+      "ground_truth_rationale": "Post-trade exposure to PAR-MSFT is $4.30M (4.30% of NAV <= 5.00%). Technology sector is 13.65% (<= 25.00%). Investment Grade.",
+      "naive_single_llm_verdict": "PASS",
+      "naive_single_llm_reason": "Trade size is 1.20% of NAV, investment grade (AAA), USD. (LLM Note: A naive LLM without the parent-group aggregator and split-rating rule might miss the Section 1.04 requirement to aggregate the ultimate_parent_id (PAR-MSFT) with the issuer, potentially miscalculating the combined exposure as 3.10% instead of the correct 4.30% NAV.)",
+      "naive_single_llm_correct": true,
+      "node3_raw_llm_verdict": "PASS",
+      "node3_raw_llm_correct": true,
+      "hybrid_final_verdict": "PASS",
+      "hybrid_final_clause": "Section 3.01(a)",
+      "hybrid_correct": true,
+      "critic_intervened": false,
+      "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+      "verbatim_quote_verified": true,
+      "fallback_grounding_applied": false,
+      "verified_char_span": "2978..3048",
+      "verified_quote_snippet": "No proposed purchase may cause the Fund's total exposure to any single issuer to exceed 5.00% of total Fund NAV on a post-trade basis.",
+      "llm_model_used": "liquid/lfm-2.5-2.6b:free",
+      "llm_latency_ms": 7536.1,
+      "full_state": {
+        "test_id": "TC-01",
+        "proposed_trade": {
+          "trade_id": "TRD-2026-001",
+          "action": "BUY",
+          "issuer_id": "ISS-MSFT",
+          "issuer_name": "Microsoft Corp",
+          "ultimate_parent_id": "PAR-MSFT",
+          "ultimate_parent_name": "Microsoft Corp",
+          "asset_class": "CORPORATE_BOND",
+          "gics_sector": "Technology",
+          "rating_sp": "AAA",
+          "rating_moodys": "Aaa",
+          "currency": "USD",
+          "is_fx_hedged": true,
+          "is_oecd_country": true,
+          "thermal_coal_revenue_pct": 0.0,
+          "trade_amount_usd": 1200000.0,
+          "prospectus_supplement_notes": "Standard senior unsecured notes issued by Microsoft Corp."
+        },
+        "trace_log": [
+          {
+            "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
+            "latency_ms": 0.74,
+            "clauses_retrieved": [
+              "Section 3.01",
+              "Section 1.04",
+              "Section 4.01",
+              "Section 3.03",
+              "Section 1.05"
+            ],
+            "top_hybrid_score": 16.0046
+          },
+          {
+            "node": "Node 2: Schema-Pruned Deterministic Calculator",
+            "latency_ms": 0.12,
+            "deterministic_status": "PASS",
+            "breach_clauses": [],
+            "escalation_clauses": [],
+            "token_reduction_pct": 99.9933
+          },
+          {
+            "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
+            "model": "liquid/lfm-2.5-2.6b:free",
+            "latency_ms": 7536.1,
+            "llm_verdict": "PASS",
+            "llm_primary_clause": "Section 3.01(a)"
+          },
+          {
+            "node": "Node 4: Grounding & Asymmetric Safety Critic",
+            "latency_ms": 3.25,
+            "final_verdict": "PASS",
+            "final_primary_clause": "Section 3.01(a)",
+            "critic_intervened": false,
+            "char_span": "2978..3048"
+          }
+        ],
+        "retrieved_clauses": [
+          {
+            "clause_id": "Section 3.01",
+            "title": "Single-Issuer Concentration Limit",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issuer to exceed **5.00% of total Fund NAV** on a post-trade basis.\n  * **(b) Affiliated Group Limit:** Pursuant to Section 1.04, the **5.00% of total Fund NAV** limit applies to the combined market value of all securities sharing the same `ultimate_parent_id`.",
+            "char_start": 2894,
+            "char_end": 3310,
+            "bm25_score": 21.7788,
+            "tfidf_cosine_score": 0.2532,
+            "hybrid_score": 16.0046,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.04",
+            "title": "\"Single-Issuer Group\" / Parent-Subsidiary Aggregation",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.04 (\"Single-Issuer Group\" / Parent-Subsidiary Aggregation):** For all concentration limits under Article III, holdings issued by a parent corporation and all of its majority-owned subsidiaries or guaranteed affiliates (sharing the same `ultimate_parent_id` in the Fund's security master) **must be aggregated and treated as a single issuer**.",
+            "char_start": 1182,
+            "char_end": 1538,
+            "bm25_score": 20.1513,
+            "tfidf_cosine_score": 0.2021,
+            "hybrid_score": 14.7122,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 4.01",
+            "title": "Non-USD Currency Exposure",
+            "article_header": "ARTICLE IV \u2014 CURRENCY & FOREIGN EXCHANGE RESTRICTIONS",
+            "text": "* **Section 4.01 (Non-USD Currency Exposure):**\n  * **(a) General Hedging Requirement:** All non-USD denominated corporate and municipal securities must be `100% currency-hedged` back to `USD` at the time of trade execution (`is_fx_hedged = true`). Unhedged non-USD corporate debt purchases are prohibited.\n  * **(b) Eligible OECD Sovereign Carve-Out:** By way of exception to Section 4.01(a), the Fund may purchase **unhedged (`is_fx_hedged = false`) non-USD debt securities** provided that:\n    1. The security is a direct sovereign obligation (`asset_class = \"SOVEREIGN_BOND\"`) of an **Eligible OECD Sovereign** (as defined in Section 1.05); AND\n    2. Total unhedged non-USD sovereign exposure across the entire Fund does not exceed **10.00% of total Fund NAV** post-trade.",
+            "char_start": 4231,
+            "char_end": 5008,
+            "bm25_score": 7.8163,
+            "tfidf_cosine_score": 0.0682,
+            "hybrid_score": 5.676,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 3.03",
+            "title": "Passive Market-Drift Cure Provision vs. Active Additions",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.03 (Passive Market-Drift Cure Provision vs. Active Additions):**\n  * If a holding or Single-Issuer Group exceeds the `5.00%` limit solely due to passive market price appreciation or NAV fluctuations (\"Passive Drift\"), the Fund is **not** required to forcibly liquidate the existing position. However, **zero incremental active purchases (`BUY` orders of any dollar amount)** may be executed in that issuer or Single-Issuer Group while its post-trade exposure remains above `5.00%` of NAV.",
+            "char_start": 3663,
+            "char_end": 4165,
+            "bm25_score": 6.94,
+            "tfidf_cosine_score": 0.0546,
+            "hybrid_score": 5.0217,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.05",
+            "title": "\"Eligible OECD Sovereign\"",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.05 (\"Eligible OECD Sovereign\"):** Means the central government or central bank of a country that is a full member of the Organisation for Economic Co-operation and Development (OECD) as of the trade date (including, without limitation, the United States, United Kingdom, Japan, Germany, France, and Canada).",
+            "char_start": 1539,
+            "char_end": 1860,
+            "bm25_score": 0.0,
+            "tfidf_cosine_score": 0.0,
+            "hybrid_score": 0.0,
+            "retrieval_reason": "CROSS_REF_EXPANSION (from Section 4.01)"
+          }
+        ],
+        "deterministic_bundle": {
+          "trade_id": "TRD-2026-001",
+          "total_nav_usd": 100000000.0,
+          "overall_deterministic_status": "PASS",
+          "triggered_breach_clauses": [],
+          "triggered_escalation_clauses": [],
+          "rule_checks": [
+            {
+              "rule_id": "RULE-301A-ISSUER",
+              "rule_name": "Direct Single-Issuer Concentration Limit",
+              "clause_citation": "Section 3.01(a)",
+              "pre_trade_metric": "$3,100,000 (3.10% NAV)",
+              "post_trade_metric": "$4,300,000 (4.30% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Direct exposure to Microsoft Corp (ISS-MSFT) moves from 3.10% to 4.30% of NAV (Limit: 5.00%)."
+            },
+            {
+              "rule_id": "RULE-301B-PARENT",
+              "rule_name": "Single-Issuer Group (Parent-Subsidiary) Aggregation Limit",
+              "clause_citation": "Section 3.01(b)",
+              "pre_trade_metric": "$3,100,000 (3.10% NAV)",
+              "post_trade_metric": "$4,300,000 (4.30% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Aggregated group exposure under ultimate_parent_id=PAR-MSFT (Microsoft Corp) moves from 3.10% to 4.30% of NAV per Section 1.04 & Section 3.01(b)."
+            },
+            {
+              "rule_id": "RULE-201-HY",
+              "rule_name": "Credit Quality & Aggregate High-Yield Ceiling",
+              "clause_citation": "Section 2.01",
+              "pre_trade_metric": "$14,200,000 (14.20% NAV)",
+              "post_trade_metric": "$14,200,000 (14.20% NAV)",
+              "threshold_limit": "<= 15.00% NAV (Higher split rating governs per Sec 2.02(b))",
+              "status": "PASS",
+              "deterministic_explanation": "Both agencies rate Investment Grade (S&P AAA, Moody's Aaa) per Section 2.02(a). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%)."
+            },
+            {
+              "rule_id": "RULE-302B-HY-ENERGY",
+              "rule_name": "High-Yield Energy Sector Sub-Cap",
+              "clause_citation": "Section 3.02(b)",
+              "pre_trade_metric": "$4,500,000 (4.50% NAV)",
+              "post_trade_metric": "$4,500,000 (4.50% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "High-Yield Energy exposure moves from 4.50% to 4.50% of NAV (Sub-Cap Limit: 5.00% under Section 3.02(b))."
+            },
+            {
+              "rule_id": "RULE-401-FX",
+              "rule_name": "Foreign Currency Hedging & OECD Sovereign Exception",
+              "clause_citation": "Section 4.01(a)",
+              "pre_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "post_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "threshold_limit": "100% Hedged (Corporate) OR <= 10.00% NAV Unhedged OECD Sovereign",
+              "status": "PASS",
+              "deterministic_explanation": "Security is USD-denominated; complies with Section 4.01(a)."
+            },
+            {
+              "rule_id": "RULE-501-502-ESG-SPV",
+              "rule_name": "ESG Thermal Coal & Sanctions Look-Through Gate",
+              "clause_citation": "Section 5.01(a)",
+              "pre_trade_metric": "Direct Coal Rev: 0.0%",
+              "post_trade_metric": "Asset Class: CORPORATE_BOND",
+              "threshold_limit": "Coal <= 10.0% & Full Look-Through Transparency",
+              "status": "PASS",
+              "deterministic_explanation": "Direct thermal coal revenue is 0.0% (<= 10.0%) and no SPV look-through opacity detected."
+            }
+          ],
+          "pruned_schema_summary": {
+            "target_issuer_pre_trade_usd": 3100000.0,
+            "target_parent_group_pre_trade_usd": 3100000.0,
+            "aggregate_high_yield_pre_trade_usd": 14200000.0,
+            "high_yield_energy_pre_trade_usd": 4500000.0,
+            "unhedged_oecd_sovereign_pre_trade_usd": 7500000.0,
+            "credit_classification_by_rule_202": "INVESTMENT_GRADE"
+          },
+          "token_budget_stats": {
+            "unpruned_75k_holdings_estimated_tokens": 3600000,
+            "schema_pruned_slice_tokens": 240,
+            "token_reduction_pct": 99.9933,
+            "excluded_sensitive_columns": [
+              "custodian_account_number",
+              "prime_broker_Clearance_code",
+              "trader_desk_internal_notes",
+              "fix_protocol_raw_payload",
+              "settlement_wire_aba_routing"
+            ]
+          }
+        },
+        "llm_raw_output": {
+          "llm_verdict": "PASS",
+          "naive_single_prompt_verdict_without_rules_engine": "PASS",
+          "naive_single_prompt_flaw": "A naive LLM without the parent-group aggregator and split-rating rule might miss the Section 1.04 requirement to aggregate the ultimate_parent_id (PAR-MSFT) with the issuer, potentially miscalculating the combined exposure as 3.10% instead of the correct 4.30% NAV.",
+          "primary_clause": "Section 3.01(a)",
+          "verbatim_quote": "No proposed purchase may cause the Fund's total exposure to any single issuer to exceed 5.00% of total Fund NAV on a post-trade basis.",
+          "qualitative_ambiguity_detected": false,
+          "semantic_analysis": "The deterministic engine confirms the trade stays within the 5.00% single-issuer concentration limit, with post-trade exposure at 4.30% NAV. The prospectus supplement notes are clear and straightforward, with no thermal coal freight/transport infrastructure or orphan SPV concerns. All quantitative and qualitative checks pass, indicating full compliance."
+        },
+        "llm_model_used": "liquid/lfm-2.5-2.6b:free",
+        "llm_latency_ms": 7536.1,
+        "naive_llm_verdict": "PASS",
+        "naive_llm_rationale": "A naive LLM without the parent-group aggregator and split-rating rule might miss the Section 1.04 requirement to aggregate the ultimate_parent_id (PAR-MSFT) with the issuer, potentially miscalculating the combined exposure as 3.10% instead of the correct 4.30% NAV.",
+        "critic_verification": {
+          "verbatim_quote_verified": true,
+          "fallback_grounding_applied": false,
+          "verified_char_start": 2978,
+          "verified_char_end": 3048,
+          "verified_quote_snippet": "No proposed purchase may cause the Fund's total exposure to any single issuer to exceed 5.00% of total Fund NAV on a post-trade basis.",
+          "critic_intervened": false,
+          "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+          "llm_raw_verdict": "PASS",
+          "deterministic_status": "PASS"
+        },
+        "final_verdict": "PASS",
+        "final_primary_clause": "Section 3.01(a)",
+        "final_audit_rationale": "[Section 3.01(a) -> PASS] Direct exposure to Microsoft Corp (ISS-MSFT) moves from 3.10% to 4.30% of NAV (Limit: 5.00%). | [Section 3.01(b) -> PASS] Aggregated group exposure under ultimate_parent_id=PAR-MSFT (Microsoft Corp) moves from 3.10% to 4.30% of NAV per Section 1.04 & Section 3.01(b). | [Section 2.01 -> PASS] Both agencies rate Investment Grade (S&P AAA, Moody's Aaa) per Section 2.02(a). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%). || LLM Semantic Note: The deterministic engine confirms the trade stays within the 5.00% single-issuer concentration limit, with post-trade exposure at 4.30% NAV. The prospectus supplement notes are clear and straightforward, with no thermal coal freight/transport infrastructure or orphan SPV concerns. All quantitative and qualitative checks pass, indicating full compliance. || Source Provenance: IPS-APEX-2026-V4 [Section 3.01(a), chars 2978..3048]",
+        "human_review_required": false
+      }
+    },
+    {
+      "test_id": "TC-02",
+      "title": "Single-Issuer Concentration Hard Breach",
+      "description": "Purchase of $1.25M Apple Inc (AA+/Aaa) USD bond. Existing position is $4.20M (4.20%); trade pushes post-trade exposure to $5.45M (5.45% > 5.00%).",
+      "expected_verdict": "BREACH",
+      "expected_primary_clause": "Section 3.01(a)",
+      "ground_truth_rationale": "Breaches Section 3.01(a): Post-trade exposure to Apple Inc reaches 5.45% of NAV ($5,450,000 / $100,000,000), exceeding the 5.00% Single-Issuer limit by 45 bps.",
+      "naive_single_llm_verdict": "BREACH",
+      "naive_single_llm_reason": "Existing Apple position (4.20%) + 1.25% trade = 5.45% > 5.00% limit. (LLM Note: A naive LLM would likely evaluate only the credit quality and currency hedging dimensions, concluding PASS because Apple is investment-grade and the security is USD-denominated, while failing to apply the parent-subsidiary aggregation rule or the single-issuer concentration limit that both independently breach at 5.45% vs. the 5.00% threshold.)",
+      "naive_single_llm_correct": true,
+      "node3_raw_llm_verdict": "BREACH",
+      "node3_raw_llm_correct": true,
+      "hybrid_final_verdict": "BREACH",
+      "hybrid_final_clause": "Section 3.01(a)",
+      "hybrid_correct": true,
+      "critic_intervened": false,
+      "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+      "verbatim_quote_verified": true,
+      "fallback_grounding_applied": false,
+      "verified_char_span": "2978..3048",
+      "verified_quote_snippet": "No proposed purchase may cause the Fund's total exposure to any single issuer to exceed 5.00% of total Fund NAV on a post-trade basis.",
+      "llm_model_used": "xingchen-agi/xing4.0-29b-a4b:free",
+      "llm_latency_ms": 26379.2,
+      "full_state": {
+        "test_id": "TC-02",
+        "proposed_trade": {
+          "trade_id": "TRD-2026-002",
+          "action": "BUY",
+          "issuer_id": "ISS-AAPL",
+          "issuer_name": "Apple Inc",
+          "ultimate_parent_id": "PAR-AAPL",
+          "ultimate_parent_name": "Apple Inc",
+          "asset_class": "CORPORATE_BOND",
+          "gics_sector": "Technology",
+          "rating_sp": "AA+",
+          "rating_moodys": "Aaa",
+          "currency": "USD",
+          "is_fx_hedged": true,
+          "is_oecd_country": true,
+          "thermal_coal_revenue_pct": 0.0,
+          "trade_amount_usd": 1250000.0,
+          "prospectus_supplement_notes": "Senior notes due 2031."
+        },
+        "trace_log": [
+          {
+            "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
+            "latency_ms": 1.23,
+            "clauses_retrieved": [
+              "Section 3.01",
+              "Section 1.04",
+              "Section 3.03",
+              "Section 4.01",
+              "Section 1.05"
+            ],
+            "top_hybrid_score": 14.8217
+          },
+          {
+            "node": "Node 2: Schema-Pruned Deterministic Calculator",
+            "latency_ms": 0.34,
+            "deterministic_status": "BREACH",
+            "breach_clauses": [
+              "Section 3.01(a)",
+              "Section 3.01(b)"
+            ],
+            "escalation_clauses": [],
+            "token_reduction_pct": 99.9933
+          },
+          {
+            "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
+            "model": "xingchen-agi/xing4.0-29b-a4b:free",
+            "latency_ms": 26379.2,
+            "llm_verdict": "BREACH",
+            "llm_primary_clause": "Section 3.01(a)"
+          },
+          {
+            "node": "Node 4: Grounding & Asymmetric Safety Critic",
+            "latency_ms": 0.1,
+            "final_verdict": "BREACH",
+            "final_primary_clause": "Section 3.01(a)",
+            "critic_intervened": false,
+            "char_span": "2978..3048"
+          }
+        ],
+        "retrieved_clauses": [
+          {
+            "clause_id": "Section 3.01",
+            "title": "Single-Issuer Concentration Limit",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issuer to exceed **5.00% of total Fund NAV** on a post-trade basis.\n  * **(b) Affiliated Group Limit:** Pursuant to Section 1.04, the **5.00% of total Fund NAV** limit applies to the combined market value of all securities sharing the same `ultimate_parent_id`.",
+            "char_start": 2894,
+            "char_end": 3310,
+            "bm25_score": 20.0611,
+            "tfidf_cosine_score": 0.2596,
+            "hybrid_score": 14.8217,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.04",
+            "title": "\"Single-Issuer Group\" / Parent-Subsidiary Aggregation",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.04 (\"Single-Issuer Group\" / Parent-Subsidiary Aggregation):** For all concentration limits under Article III, holdings issued by a parent corporation and all of its majority-owned subsidiaries or guaranteed affiliates (sharing the same `ultimate_parent_id` in the Fund's security master) **must be aggregated and treated as a single issuer**.",
+            "char_start": 1182,
+            "char_end": 1538,
+            "bm25_score": 18.1884,
+            "tfidf_cosine_score": 0.2008,
+            "hybrid_score": 13.3342,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 3.03",
+            "title": "Passive Market-Drift Cure Provision vs. Active Additions",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.03 (Passive Market-Drift Cure Provision vs. Active Additions):**\n  * If a holding or Single-Issuer Group exceeds the `5.00%` limit solely due to passive market price appreciation or NAV fluctuations (\"Passive Drift\"), the Fund is **not** required to forcibly liquidate the existing position. However, **zero incremental active purchases (`BUY` orders of any dollar amount)** may be executed in that issuer or Single-Issuer Group while its post-trade exposure remains above `5.00%` of NAV.",
+            "char_start": 3663,
+            "char_end": 4165,
+            "bm25_score": 8.9367,
+            "tfidf_cosine_score": 0.0783,
+            "hybrid_score": 6.4908,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 4.01",
+            "title": "Non-USD Currency Exposure",
+            "article_header": "ARTICLE IV \u2014 CURRENCY & FOREIGN EXCHANGE RESTRICTIONS",
+            "text": "* **Section 4.01 (Non-USD Currency Exposure):**\n  * **(a) General Hedging Requirement:** All non-USD denominated corporate and municipal securities must be `100% currency-hedged` back to `USD` at the time of trade execution (`is_fx_hedged = true`). Unhedged non-USD corporate debt purchases are prohibited.\n  * **(b) Eligible OECD Sovereign Carve-Out:** By way of exception to Section 4.01(a), the Fund may purchase **unhedged (`is_fx_hedged = false`) non-USD debt securities** provided that:\n    1. The security is a direct sovereign obligation (`asset_class = \"SOVEREIGN_BOND\"`) of an **Eligible OECD Sovereign** (as defined in Section 1.05); AND\n    2. Total unhedged non-USD sovereign exposure across the entire Fund does not exceed **10.00% of total Fund NAV** post-trade.",
+            "char_start": 4231,
+            "char_end": 5008,
+            "bm25_score": 7.8163,
+            "tfidf_cosine_score": 0.0747,
+            "hybrid_score": 5.6956,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.05",
+            "title": "\"Eligible OECD Sovereign\"",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.05 (\"Eligible OECD Sovereign\"):** Means the central government or central bank of a country that is a full member of the Organisation for Economic Co-operation and Development (OECD) as of the trade date (including, without limitation, the United States, United Kingdom, Japan, Germany, France, and Canada).",
+            "char_start": 1539,
+            "char_end": 1860,
+            "bm25_score": 0.0,
+            "tfidf_cosine_score": 0.0,
+            "hybrid_score": 0.0,
+            "retrieval_reason": "CROSS_REF_EXPANSION (from Section 4.01)"
+          }
+        ],
+        "deterministic_bundle": {
+          "trade_id": "TRD-2026-002",
+          "total_nav_usd": 100000000.0,
+          "overall_deterministic_status": "BREACH",
+          "triggered_breach_clauses": [
+            "Section 3.01(a)",
+            "Section 3.01(b)"
+          ],
+          "triggered_escalation_clauses": [],
+          "rule_checks": [
+            {
+              "rule_id": "RULE-301A-ISSUER",
+              "rule_name": "Direct Single-Issuer Concentration Limit",
+              "clause_citation": "Section 3.01(a)",
+              "pre_trade_metric": "$4,200,000 (4.20% NAV)",
+              "post_trade_metric": "$5,450,000 (5.45% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "BREACH",
+              "deterministic_explanation": "Direct exposure to Apple Inc (ISS-AAPL) moves from 4.20% to 5.45% of NAV (Limit: 5.00%)."
+            },
+            {
+              "rule_id": "RULE-301B-PARENT",
+              "rule_name": "Single-Issuer Group (Parent-Subsidiary) Aggregation Limit",
+              "clause_citation": "Section 3.01(b)",
+              "pre_trade_metric": "$4,200,000 (4.20% NAV)",
+              "post_trade_metric": "$5,450,000 (5.45% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "BREACH",
+              "deterministic_explanation": "Aggregated group exposure under ultimate_parent_id=PAR-AAPL (Apple Inc) moves from 4.20% to 5.45% of NAV per Section 1.04 & Section 3.01(b)."
+            },
+            {
+              "rule_id": "RULE-201-HY",
+              "rule_name": "Credit Quality & Aggregate High-Yield Ceiling",
+              "clause_citation": "Section 2.01",
+              "pre_trade_metric": "$14,200,000 (14.20% NAV)",
+              "post_trade_metric": "$14,200,000 (14.20% NAV)",
+              "threshold_limit": "<= 15.00% NAV (Higher split rating governs per Sec 2.02(b))",
+              "status": "PASS",
+              "deterministic_explanation": "Both agencies rate Investment Grade (S&P AA+, Moody's Aaa) per Section 2.02(a). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%)."
+            },
+            {
+              "rule_id": "RULE-302B-HY-ENERGY",
+              "rule_name": "High-Yield Energy Sector Sub-Cap",
+              "clause_citation": "Section 3.02(b)",
+              "pre_trade_metric": "$4,500,000 (4.50% NAV)",
+              "post_trade_metric": "$4,500,000 (4.50% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "High-Yield Energy exposure moves from 4.50% to 4.50% of NAV (Sub-Cap Limit: 5.00% under Section 3.02(b))."
+            },
+            {
+              "rule_id": "RULE-401-FX",
+              "rule_name": "Foreign Currency Hedging & OECD Sovereign Exception",
+              "clause_citation": "Section 4.01(a)",
+              "pre_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "post_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "threshold_limit": "100% Hedged (Corporate) OR <= 10.00% NAV Unhedged OECD Sovereign",
+              "status": "PASS",
+              "deterministic_explanation": "Security is USD-denominated; complies with Section 4.01(a)."
+            },
+            {
+              "rule_id": "RULE-501-502-ESG-SPV",
+              "rule_name": "ESG Thermal Coal & Sanctions Look-Through Gate",
+              "clause_citation": "Section 5.01(a)",
+              "pre_trade_metric": "Direct Coal Rev: 0.0%",
+              "post_trade_metric": "Asset Class: CORPORATE_BOND",
+              "threshold_limit": "Coal <= 10.0% & Full Look-Through Transparency",
+              "status": "PASS",
+              "deterministic_explanation": "Direct thermal coal revenue is 0.0% (<= 10.0%) and no SPV look-through opacity detected."
+            }
+          ],
+          "pruned_schema_summary": {
+            "target_issuer_pre_trade_usd": 4200000.0,
+            "target_parent_group_pre_trade_usd": 4200000.0,
+            "aggregate_high_yield_pre_trade_usd": 14200000.0,
+            "high_yield_energy_pre_trade_usd": 4500000.0,
+            "unhedged_oecd_sovereign_pre_trade_usd": 7500000.0,
+            "credit_classification_by_rule_202": "INVESTMENT_GRADE"
+          },
+          "token_budget_stats": {
+            "unpruned_75k_holdings_estimated_tokens": 3600000,
+            "schema_pruned_slice_tokens": 240,
+            "token_reduction_pct": 99.9933,
+            "excluded_sensitive_columns": [
+              "custodian_account_number",
+              "prime_broker_Clearance_code",
+              "trader_desk_internal_notes",
+              "fix_protocol_raw_payload",
+              "settlement_wire_aba_routing"
+            ]
+          }
+        },
+        "llm_raw_output": {
+          "llm_verdict": "BREACH",
+          "naive_single_prompt_verdict_without_rules_engine": "PASS",
+          "naive_single_prompt_flaw": "A naive LLM would likely evaluate only the credit quality and currency hedging dimensions, concluding PASS because Apple is investment-grade and the security is USD-denominated, while failing to apply the parent-subsidiary aggregation rule or the single-issuer concentration limit that both independently breach at 5.45% vs. the 5.00% threshold.",
+          "primary_clause": "Section 3.01(a)",
+          "verbatim_quote": "No proposed purchase may cause the Fund's total exposure to any single issuer to exceed 5.00% of total Fund NAV on a post-trade basis.",
+          "qualitative_ambiguity_detected": false,
+          "semantic_analysis": "The deterministic calculator confirms a breach under both Section 3.01(a) and Section 3.01(b), as direct exposure to Apple Inc rises from 4.20% to 5.45% of NAV, exceeding the 5.00% threshold. The prospectus supplement notes ('Senior notes due 2031') contain no thermal coal or transport infrastructure disclosures and no SPV look-through opacity, so no qualitative ambiguity is triggered under Section 5.01(b) or Section 5.02."
+        },
+        "llm_model_used": "xingchen-agi/xing4.0-29b-a4b:free",
+        "llm_latency_ms": 26379.2,
+        "naive_llm_verdict": "PASS",
+        "naive_llm_rationale": "A naive LLM would likely evaluate only the credit quality and currency hedging dimensions, concluding PASS because Apple is investment-grade and the security is USD-denominated, while failing to apply the parent-subsidiary aggregation rule or the single-issuer concentration limit that both independently breach at 5.45% vs. the 5.00% threshold.",
+        "critic_verification": {
+          "verbatim_quote_verified": true,
+          "fallback_grounding_applied": false,
+          "verified_char_start": 2978,
+          "verified_char_end": 3048,
+          "verified_quote_snippet": "No proposed purchase may cause the Fund's total exposure to any single issuer to exceed 5.00% of total Fund NAV on a post-trade basis.",
+          "critic_intervened": false,
+          "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+          "llm_raw_verdict": "BREACH",
+          "deterministic_status": "BREACH"
+        },
+        "final_verdict": "BREACH",
+        "final_primary_clause": "Section 3.01(a)",
+        "final_audit_rationale": "[Section 3.01(a) -> BREACH] Direct exposure to Apple Inc (ISS-AAPL) moves from 4.20% to 5.45% of NAV (Limit: 5.00%). | [Section 3.01(b) -> BREACH] Aggregated group exposure under ultimate_parent_id=PAR-AAPL (Apple Inc) moves from 4.20% to 5.45% of NAV per Section 1.04 & Section 3.01(b). || LLM Semantic Note: The deterministic calculator confirms a breach under both Section 3.01(a) and Section 3.01(b), as direct exposure to Apple Inc rises from 4.20% to 5.45% of NAV, exceeding the 5.00% threshold. The prospectus supplement notes ('Senior notes due 2031') contain no thermal coal or transport infrastructure disclosures and no SPV look-through opacity, so no qualitative ambiguity is triggered under Section 5.01(b) or Section 5.02. || Source Provenance: IPS-APEX-2026-V4 [Section 3.01(a), chars 2978..3048]",
+        "human_review_required": true
+      }
+    },
+    {
+      "test_id": "TC-03",
+      "title": "Parent-Subsidiary Affiliated Group Aggregation Trap",
+      "description": "Purchase of $1.30M in Florida Power & Light Co (0% direct holding), a wholly-owned subsidiary of NextEra Energy Inc (PAR-NEE, already at $4.10M / 4.10% NAV).",
+      "expected_verdict": "BREACH",
+      "expected_primary_clause": "Section 3.01(b)",
+      "ground_truth_rationale": "Direct issuer ISS-FPL is only 1.30% of NAV, but under Section 1.04 and Section 3.01(b), aggregating by ultimate_parent_id (PAR-NEE) yields $4.10M + $1.30M = $5.40M (5.40% > 5.00%).",
+      "naive_single_llm_verdict": "PASS",
+      "naive_single_llm_reason": "FALSE NEGATIVE: Direct issuer 'Florida Power & Light Co' has $0 existing holdings (1.30% <= 5.00%); misses parent NextEra (PAR-NEE) aggregation. (LLM Note: A naive LLM would only check the issuer's individual exposure and ignore the parent\u2011subsidiary aggregation rule, incorrectly deeming the trade PASS.)",
+      "naive_single_llm_correct": false,
+      "node3_raw_llm_verdict": "BREACH",
+      "node3_raw_llm_correct": true,
+      "hybrid_final_verdict": "BREACH",
+      "hybrid_final_clause": "Section 3.01(b)",
+      "hybrid_correct": true,
+      "critic_intervened": false,
+      "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+      "verbatim_quote_verified": true,
+      "fallback_grounding_applied": true,
+      "verified_char_span": "2894..3310",
+      "verified_quote_snippet": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issue...",
+      "llm_model_used": "cohere/north-mini-code:free",
+      "llm_latency_ms": 9858.8,
+      "full_state": {
+        "test_id": "TC-03",
+        "proposed_trade": {
+          "trade_id": "TRD-2026-003",
+          "action": "BUY",
+          "issuer_id": "ISS-FPL",
+          "issuer_name": "Florida Power & Light Co",
+          "ultimate_parent_id": "PAR-NEE",
+          "ultimate_parent_name": "NextEra Energy Inc",
+          "asset_class": "CORPORATE_BOND",
+          "gics_sector": "Utilities",
+          "rating_sp": "A",
+          "rating_moodys": "A1",
+          "currency": "USD",
+          "is_fx_hedged": true,
+          "is_oecd_country": true,
+          "thermal_coal_revenue_pct": 0.0,
+          "trade_amount_usd": 1300000.0,
+          "prospectus_supplement_notes": "First mortgage bonds issued by Florida Power & Light Co, a wholly-owned operating subsidiary of NextEra Energy Inc."
+        },
+        "trace_log": [
+          {
+            "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
+            "latency_ms": 2.36,
+            "clauses_retrieved": [
+              "Section 3.01",
+              "Section 1.04",
+              "Section 3.02",
+              "Section 1.03"
+            ],
+            "top_hybrid_score": 14.6203
+          },
+          {
+            "node": "Node 2: Schema-Pruned Deterministic Calculator",
+            "latency_ms": 0.11,
+            "deterministic_status": "BREACH",
+            "breach_clauses": [
+              "Section 3.01(b)"
+            ],
+            "escalation_clauses": [],
+            "token_reduction_pct": 99.9933
+          },
+          {
+            "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
+            "model": "cohere/north-mini-code:free",
+            "latency_ms": 9858.8,
+            "llm_verdict": "BREACH",
+            "llm_primary_clause": "Section 3.01(b)"
+          },
+          {
+            "node": "Node 4: Grounding & Asymmetric Safety Critic",
+            "latency_ms": 0.29,
+            "final_verdict": "BREACH",
+            "final_primary_clause": "Section 3.01(b)",
+            "critic_intervened": false,
+            "char_span": "2894..3310"
+          }
+        ],
+        "retrieved_clauses": [
+          {
+            "clause_id": "Section 3.01",
+            "title": "Single-Issuer Concentration Limit",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issuer to exceed **5.00% of total Fund NAV** on a post-trade basis.\n  * **(b) Affiliated Group Limit:** Pursuant to Section 1.04, the **5.00% of total Fund NAV** limit applies to the combined market value of all securities sharing the same `ultimate_parent_id`.",
+            "char_start": 2894,
+            "char_end": 3310,
+            "bm25_score": 20.0611,
+            "tfidf_cosine_score": 0.1925,
+            "hybrid_score": 14.6203,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.04",
+            "title": "\"Single-Issuer Group\" / Parent-Subsidiary Aggregation",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.04 (\"Single-Issuer Group\" / Parent-Subsidiary Aggregation):** For all concentration limits under Article III, holdings issued by a parent corporation and all of its majority-owned subsidiaries or guaranteed affiliates (sharing the same `ultimate_parent_id` in the Fund's security master) **must be aggregated and treated as a single issuer**.",
+            "char_start": 1182,
+            "char_end": 1538,
+            "bm25_score": 20.1513,
+            "tfidf_cosine_score": 0.1642,
+            "hybrid_score": 14.5985,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 3.02",
+            "title": "Sector & High-Yield Sub-Limits",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.02 (Sector & High-Yield Sub-Limits):**\n  * **(a) Broad Sector Limit:** No single GICS sector may exceed **25.00% of total Fund NAV**.\n  * **(b) High-Yield Energy Sub-Cap:** Aggregate holdings in **High Yield (Below-Investment-Grade) issuers within the `Energy` sector** shall not exceed **5.00% of total Fund NAV** on a post-trade basis.",
+            "char_start": 3311,
+            "char_end": 3662,
+            "bm25_score": 18.457,
+            "tfidf_cosine_score": 0.1384,
+            "hybrid_score": 13.3351,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.03",
+            "title": "\"High Yield\" or \"Below-Investment-Grade\"",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.03 (\"High Yield\" or \"Below-Investment-Grade\"):** Means any debt security rated below `BBB-` (S&P/Fitch) or below `Baa3` (Moody's), or unrated securities deemed equivalent by the Adviser.",
+            "char_start": 981,
+            "char_end": 1181,
+            "bm25_score": 8.2031,
+            "tfidf_cosine_score": 0.0802,
+            "hybrid_score": 5.9828,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          }
+        ],
+        "deterministic_bundle": {
+          "trade_id": "TRD-2026-003",
+          "total_nav_usd": 100000000.0,
+          "overall_deterministic_status": "BREACH",
+          "triggered_breach_clauses": [
+            "Section 3.01(b)"
+          ],
+          "triggered_escalation_clauses": [],
+          "rule_checks": [
+            {
+              "rule_id": "RULE-301A-ISSUER",
+              "rule_name": "Direct Single-Issuer Concentration Limit",
+              "clause_citation": "Section 3.01(a)",
+              "pre_trade_metric": "$0 (0.00% NAV)",
+              "post_trade_metric": "$1,300,000 (1.30% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Direct exposure to Florida Power & Light Co (ISS-FPL) moves from 0.00% to 1.30% of NAV (Limit: 5.00%)."
+            },
+            {
+              "rule_id": "RULE-301B-PARENT",
+              "rule_name": "Single-Issuer Group (Parent-Subsidiary) Aggregation Limit",
+              "clause_citation": "Section 3.01(b)",
+              "pre_trade_metric": "$4,100,000 (4.10% NAV)",
+              "post_trade_metric": "$5,400,000 (5.40% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "BREACH",
+              "deterministic_explanation": "Aggregated group exposure under ultimate_parent_id=PAR-NEE (NextEra Energy Inc) moves from 4.10% to 5.40% of NAV per Section 1.04 & Section 3.01(b)."
+            },
+            {
+              "rule_id": "RULE-201-HY",
+              "rule_name": "Credit Quality & Aggregate High-Yield Ceiling",
+              "clause_citation": "Section 2.01",
+              "pre_trade_metric": "$14,200,000 (14.20% NAV)",
+              "post_trade_metric": "$14,200,000 (14.20% NAV)",
+              "threshold_limit": "<= 15.00% NAV (Higher split rating governs per Sec 2.02(b))",
+              "status": "PASS",
+              "deterministic_explanation": "Both agencies rate Investment Grade (S&P A, Moody's A1) per Section 2.02(a). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%)."
+            },
+            {
+              "rule_id": "RULE-302B-HY-ENERGY",
+              "rule_name": "High-Yield Energy Sector Sub-Cap",
+              "clause_citation": "Section 3.02(b)",
+              "pre_trade_metric": "$4,500,000 (4.50% NAV)",
+              "post_trade_metric": "$4,500,000 (4.50% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "High-Yield Energy exposure moves from 4.50% to 4.50% of NAV (Sub-Cap Limit: 5.00% under Section 3.02(b))."
+            },
+            {
+              "rule_id": "RULE-401-FX",
+              "rule_name": "Foreign Currency Hedging & OECD Sovereign Exception",
+              "clause_citation": "Section 4.01(a)",
+              "pre_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "post_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "threshold_limit": "100% Hedged (Corporate) OR <= 10.00% NAV Unhedged OECD Sovereign",
+              "status": "PASS",
+              "deterministic_explanation": "Security is USD-denominated; complies with Section 4.01(a)."
+            },
+            {
+              "rule_id": "RULE-501-502-ESG-SPV",
+              "rule_name": "ESG Thermal Coal & Sanctions Look-Through Gate",
+              "clause_citation": "Section 5.01(a)",
+              "pre_trade_metric": "Direct Coal Rev: 0.0%",
+              "post_trade_metric": "Asset Class: CORPORATE_BOND",
+              "threshold_limit": "Coal <= 10.0% & Full Look-Through Transparency",
+              "status": "PASS",
+              "deterministic_explanation": "Direct thermal coal revenue is 0.0% (<= 10.0%) and no SPV look-through opacity detected."
+            }
+          ],
+          "pruned_schema_summary": {
+            "target_issuer_pre_trade_usd": 0,
+            "target_parent_group_pre_trade_usd": 4100000.0,
+            "aggregate_high_yield_pre_trade_usd": 14200000.0,
+            "high_yield_energy_pre_trade_usd": 4500000.0,
+            "unhedged_oecd_sovereign_pre_trade_usd": 7500000.0,
+            "credit_classification_by_rule_202": "INVESTMENT_GRADE"
+          },
+          "token_budget_stats": {
+            "unpruned_75k_holdings_estimated_tokens": 3600000,
+            "schema_pruned_slice_tokens": 240,
+            "token_reduction_pct": 99.9933,
+            "excluded_sensitive_columns": [
+              "custodian_account_number",
+              "prime_broker_Clearance_code",
+              "trader_desk_internal_notes",
+              "fix_protocol_raw_payload",
+              "settlement_wire_aba_routing"
+            ]
+          }
+        },
+        "llm_raw_output": {
+          "llm_verdict": "BREACH",
+          "naive_single_prompt_verdict_without_rules_engine": "PASS",
+          "naive_single_prompt_flaw": "A naive LLM would only check the issuer's individual exposure and ignore the parent\u2011subsidiary aggregation rule, incorrectly deeming the trade PASS.",
+          "primary_clause": "Section 3.01(b)",
+          "verbatim_quote": "Pursuant to Section 1.04, the 5.00% of total Fund NAV limit applies to the combined market value of all securities sharing the same ultimate_parent_id.",
+          "qualitative_ambiguity_detected": false,
+          "semantic_analysis": "The deterministic engine shows that after the trade the aggregated exposure to the ultimate parent PAR\u2011NEE (NextEra Energy Inc) rises to 5.40% of NAV, exceeding the 5.00% limit under Section\u202f3.01(b). The prospectus supplement notes are straightforward and contain no undisclosed coal\u2011freight or SPV opacity, so no qualitative ambiguity is detected."
+        },
+        "llm_model_used": "cohere/north-mini-code:free",
+        "llm_latency_ms": 9858.8,
+        "naive_llm_verdict": "PASS",
+        "naive_llm_rationale": "A naive LLM would only check the issuer's individual exposure and ignore the parent\u2011subsidiary aggregation rule, incorrectly deeming the trade PASS.",
+        "critic_verification": {
+          "verbatim_quote_verified": true,
+          "fallback_grounding_applied": true,
+          "verified_char_start": 2894,
+          "verified_char_end": 3310,
+          "verified_quote_snippet": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issue...",
+          "critic_intervened": false,
+          "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+          "llm_raw_verdict": "BREACH",
+          "deterministic_status": "BREACH"
+        },
+        "final_verdict": "BREACH",
+        "final_primary_clause": "Section 3.01(b)",
+        "final_audit_rationale": "[Section 3.01(b) -> BREACH] Aggregated group exposure under ultimate_parent_id=PAR-NEE (NextEra Energy Inc) moves from 4.10% to 5.40% of NAV per Section 1.04 & Section 3.01(b). || LLM Semantic Note: The deterministic engine shows that after the trade the aggregated exposure to the ultimate parent PAR\u2011NEE (NextEra Energy Inc) rises to 5.40% of NAV, exceeding the 5.00% limit under Section\u202f3.01(b). The prospectus supplement notes are straightforward and contain no undisclosed coal\u2011freight or SPV opacity, so no qualitative ambiguity is detected. || Source Provenance: IPS-APEX-2026-V4 [Section 3.01(b), chars 2894..3310]",
+        "human_review_required": true
+      }
+    },
+    {
+      "test_id": "TC-04",
+      "title": "Split Credit Rating Governance (Higher Rating Governs)",
+      "description": "Purchase of $1.50M Ford Motor Credit Co bond rated BBB- by S&P (Investment Grade) and Ba1 by Moody's (High Yield). Current High Yield bucket is 14.20% (cap 15.00%).",
+      "expected_verdict": "PASS",
+      "expected_primary_clause": "Section 2.02(b)",
+      "ground_truth_rationale": "If treated as High Yield, this $1.50M trade would push the High Yield bucket from 14.20% to 15.70% (breaching Section 2.01). However, under Section 2.02(b), the higher of the two split ratings (S&P BBB-) governs, classifying it as Investment Grade and leaving High Yield unchanged at 14.20%.",
+      "naive_single_llm_verdict": "BREACH",
+      "naive_single_llm_reason": "FALSE POSITIVE: Sees Moody's Ba1 (High Yield) and adds 1.50% to 14.20% = 15.70% (> 15.00% cap), missing Section 2.02(b) higher split-rating rule. (LLM Note: A naive LLM might incorrectly classify the split-rated bond as High Yield based on Moody's Ba1 rating, causing the aggregate High Yield exposure to appear to breach the 15% ceiling, and might also fail to aggregate parent-subsidiary exposure under Section 1.04.)",
+      "naive_single_llm_correct": false,
+      "node3_raw_llm_verdict": "PASS",
+      "node3_raw_llm_correct": true,
+      "hybrid_final_verdict": "PASS",
+      "hybrid_final_clause": "Section 2.02(b)",
+      "hybrid_correct": true,
+      "critic_intervened": false,
+      "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+      "verbatim_quote_verified": true,
+      "fallback_grounding_applied": true,
+      "verified_char_span": "2110..2838",
+      "verified_quote_snippet": "* **Section 2.02 (Split-Rated Securities Rule):**\n  * **(a)** If a security is rated by both S&P and Moody's and both ratings fall within Investment Grade, it i...",
+      "llm_model_used": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "llm_latency_ms": 68623.6,
+      "full_state": {
+        "test_id": "TC-04",
+        "proposed_trade": {
+          "trade_id": "TRD-2026-004",
+          "action": "BUY",
+          "issuer_id": "ISS-FMCC",
+          "issuer_name": "Ford Motor Credit Co LLC",
+          "ultimate_parent_id": "PAR-F",
+          "ultimate_parent_name": "Ford Motor Co",
+          "asset_class": "CORPORATE_BOND",
+          "gics_sector": "Consumer Discretionary",
+          "rating_sp": "BBB-",
+          "rating_moodys": "Ba1",
+          "currency": "USD",
+          "is_fx_hedged": true,
+          "is_oecd_country": true,
+          "thermal_coal_revenue_pct": 0.0,
+          "trade_amount_usd": 1500000.0,
+          "prospectus_supplement_notes": "Split-rated senior notes: S&P BBB- (Investment Grade) / Moody's Ba1 (Non-Investment Grade)."
+        },
+        "trace_log": [
+          {
+            "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
+            "latency_ms": 1.26,
+            "clauses_retrieved": [
+              "Section 2.02",
+              "Section 1.02",
+              "Section 3.01",
+              "Section 1.04",
+              "Section 2.01",
+              "Section 3.02"
+            ],
+            "top_hybrid_score": 24.1217
+          },
+          {
+            "node": "Node 2: Schema-Pruned Deterministic Calculator",
+            "latency_ms": 0.29,
+            "deterministic_status": "PASS",
+            "breach_clauses": [],
+            "escalation_clauses": [],
+            "token_reduction_pct": 99.9933
+          },
+          {
+            "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
+            "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+            "latency_ms": 68623.6,
+            "llm_verdict": "PASS",
+            "llm_primary_clause": "Section 2.02(b)"
+          },
+          {
+            "node": "Node 4: Grounding & Asymmetric Safety Critic",
+            "latency_ms": 0.64,
+            "final_verdict": "PASS",
+            "final_primary_clause": "Section 2.02(b)",
+            "critic_intervened": false,
+            "char_span": "2110..2838"
+          }
+        ],
+        "retrieved_clauses": [
+          {
+            "clause_id": "Section 2.02",
+            "title": "Split-Rated Securities Rule",
+            "article_header": "ARTICLE II \u2014 CREDIT QUALITY & SPLIT-RATING RULES",
+            "text": "* **Section 2.02 (Split-Rated Securities Rule):**\n  * **(a)** If a security is rated by both S&P and Moody's and both ratings fall within Investment Grade, it is classified as Investment Grade.\n  * **(b)** If a security is **split-rated** between S&P and Moody's (where one agency assigns an Investment Grade rating of `BBB-`/`Baa3` or higher, and the other agency assigns a High Yield rating of `BB+`/`Ba1` or lower), **the higher of the two ratings shall govern** for purposes of determining whether the security counts as Investment Grade under Section 2.01 and Section 3.02.\n  * **(c)** Notwithstanding Section 2.02(b), any security rated `CCC+` / `Caa1` or lower by *any* rating agency is strictly prohibited from purchase.",
+            "char_start": 2110,
+            "char_end": 2838,
+            "bm25_score": 33.0096,
+            "tfidf_cosine_score": 0.3383,
+            "hybrid_score": 24.1217,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.02",
+            "title": "\"Investment Grade\"",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.02 (\"Investment Grade\"):** Means a security rated at least `BBB-` by Standard & Poor's (S&P) or Fitch, or at least `Baa3` by Moody's Investors Service.",
+            "char_start": 815,
+            "char_end": 980,
+            "bm25_score": 21.728,
+            "tfidf_cosine_score": 0.257,
+            "hybrid_score": 15.9805,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 3.01",
+            "title": "Single-Issuer Concentration Limit",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issuer to exceed **5.00% of total Fund NAV** on a post-trade basis.\n  * **(b) Affiliated Group Limit:** Pursuant to Section 1.04, the **5.00% of total Fund NAV** limit applies to the combined market value of all securities sharing the same `ultimate_parent_id`.",
+            "char_start": 2894,
+            "char_end": 3310,
+            "bm25_score": 21.5911,
+            "tfidf_cosine_score": 0.2227,
+            "hybrid_score": 15.7819,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.04",
+            "title": "\"Single-Issuer Group\" / Parent-Subsidiary Aggregation",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.04 (\"Single-Issuer Group\" / Parent-Subsidiary Aggregation):** For all concentration limits under Article III, holdings issued by a parent corporation and all of its majority-owned subsidiaries or guaranteed affiliates (sharing the same `ultimate_parent_id` in the Fund's security master) **must be aggregated and treated as a single issuer**.",
+            "char_start": 1182,
+            "char_end": 1538,
+            "bm25_score": 19.9368,
+            "tfidf_cosine_score": 0.1767,
+            "hybrid_score": 14.4858,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 2.01",
+            "title": "Aggregate High-Yield Ceiling",
+            "article_header": "ARTICLE II \u2014 CREDIT QUALITY & SPLIT-RATING RULES",
+            "text": "* **Section 2.01 (Aggregate High-Yield Ceiling):** The Fund may invest no more than **15.00% of its total NAV** in aggregate across all High Yield (Below-Investment-Grade) debt securities.",
+            "char_start": 1921,
+            "char_end": 2109,
+            "bm25_score": 0.0,
+            "tfidf_cosine_score": 0.0,
+            "hybrid_score": 0.0,
+            "retrieval_reason": "CROSS_REF_EXPANSION (from Section 2.02)"
+          },
+          {
+            "clause_id": "Section 3.02",
+            "title": "Sector & High-Yield Sub-Limits",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.02 (Sector & High-Yield Sub-Limits):**\n  * **(a) Broad Sector Limit:** No single GICS sector may exceed **25.00% of total Fund NAV**.\n  * **(b) High-Yield Energy Sub-Cap:** Aggregate holdings in **High Yield (Below-Investment-Grade) issuers within the `Energy` sector** shall not exceed **5.00% of total Fund NAV** on a post-trade basis.",
+            "char_start": 3311,
+            "char_end": 3662,
+            "bm25_score": 0.0,
+            "tfidf_cosine_score": 0.0,
+            "hybrid_score": 0.0,
+            "retrieval_reason": "CROSS_REF_EXPANSION (from Section 2.02)"
+          }
+        ],
+        "deterministic_bundle": {
+          "trade_id": "TRD-2026-004",
+          "total_nav_usd": 100000000.0,
+          "overall_deterministic_status": "PASS",
+          "triggered_breach_clauses": [],
+          "triggered_escalation_clauses": [],
+          "rule_checks": [
+            {
+              "rule_id": "RULE-301A-ISSUER",
+              "rule_name": "Direct Single-Issuer Concentration Limit",
+              "clause_citation": "Section 3.01(a)",
+              "pre_trade_metric": "$0 (0.00% NAV)",
+              "post_trade_metric": "$1,500,000 (1.50% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Direct exposure to Ford Motor Credit Co LLC (ISS-FMCC) moves from 0.00% to 1.50% of NAV (Limit: 5.00%)."
+            },
+            {
+              "rule_id": "RULE-301B-PARENT",
+              "rule_name": "Single-Issuer Group (Parent-Subsidiary) Aggregation Limit",
+              "clause_citation": "Section 3.01(b)",
+              "pre_trade_metric": "$0 (0.00% NAV)",
+              "post_trade_metric": "$1,500,000 (1.50% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Aggregated group exposure under ultimate_parent_id=PAR-F (Ford Motor Co) moves from 0.00% to 1.50% of NAV per Section 1.04 & Section 3.01(b)."
+            },
+            {
+              "rule_id": "RULE-201-HY",
+              "rule_name": "Credit Quality & Aggregate High-Yield Ceiling",
+              "clause_citation": "Section 2.02(b)",
+              "pre_trade_metric": "$14,200,000 (14.20% NAV)",
+              "post_trade_metric": "$14,200,000 (14.20% NAV)",
+              "threshold_limit": "<= 15.00% NAV (Higher split rating governs per Sec 2.02(b))",
+              "status": "PASS",
+              "deterministic_explanation": "Split-rated (S&P BBB- vs Moody's Ba1); higher rating (S&P BBB-) governs as Investment Grade per Section 2.02(b). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%)."
+            },
+            {
+              "rule_id": "RULE-302B-HY-ENERGY",
+              "rule_name": "High-Yield Energy Sector Sub-Cap",
+              "clause_citation": "Section 3.02(b)",
+              "pre_trade_metric": "$4,500,000 (4.50% NAV)",
+              "post_trade_metric": "$4,500,000 (4.50% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "High-Yield Energy exposure moves from 4.50% to 4.50% of NAV (Sub-Cap Limit: 5.00% under Section 3.02(b))."
+            },
+            {
+              "rule_id": "RULE-401-FX",
+              "rule_name": "Foreign Currency Hedging & OECD Sovereign Exception",
+              "clause_citation": "Section 4.01(a)",
+              "pre_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "post_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "threshold_limit": "100% Hedged (Corporate) OR <= 10.00% NAV Unhedged OECD Sovereign",
+              "status": "PASS",
+              "deterministic_explanation": "Security is USD-denominated; complies with Section 4.01(a)."
+            },
+            {
+              "rule_id": "RULE-501-502-ESG-SPV",
+              "rule_name": "ESG Thermal Coal & Sanctions Look-Through Gate",
+              "clause_citation": "Section 5.01(a)",
+              "pre_trade_metric": "Direct Coal Rev: 0.0%",
+              "post_trade_metric": "Asset Class: CORPORATE_BOND",
+              "threshold_limit": "Coal <= 10.0% & Full Look-Through Transparency",
+              "status": "PASS",
+              "deterministic_explanation": "Direct thermal coal revenue is 0.0% (<= 10.0%) and no SPV look-through opacity detected."
+            }
+          ],
+          "pruned_schema_summary": {
+            "target_issuer_pre_trade_usd": 0,
+            "target_parent_group_pre_trade_usd": 0,
+            "aggregate_high_yield_pre_trade_usd": 14200000.0,
+            "high_yield_energy_pre_trade_usd": 4500000.0,
+            "unhedged_oecd_sovereign_pre_trade_usd": 7500000.0,
+            "credit_classification_by_rule_202": "INVESTMENT_GRADE"
+          },
+          "token_budget_stats": {
+            "unpruned_75k_holdings_estimated_tokens": 3600000,
+            "schema_pruned_slice_tokens": 240,
+            "token_reduction_pct": 99.9933,
+            "excluded_sensitive_columns": [
+              "custodian_account_number",
+              "prime_broker_Clearance_code",
+              "trader_desk_internal_notes",
+              "fix_protocol_raw_payload",
+              "settlement_wire_aba_routing"
+            ]
+          }
+        },
+        "llm_raw_output": {
+          "llm_verdict": "PASS",
+          "naive_single_prompt_verdict_without_rules_engine": "BREACH",
+          "naive_single_prompt_flaw": "A naive LLM might incorrectly classify the split-rated bond as High Yield based on Moody's Ba1 rating, causing the aggregate High Yield exposure to appear to breach the 15% ceiling, and might also fail to aggregate parent-subsidiary exposure under Section 1.04.",
+          "primary_clause": "Section 2.02(b)",
+          "verbatim_quote": "the higher of the two ratings shall govern for purposes of determining whether the security counts as Investment Grade under Section 2.01 and Section 3.02",
+          "qualitative_ambiguity_detected": false,
+          "semantic_analysis": "The deterministic engine confirms the trade passes all quantitative limits: direct and parent-aggregated exposure at 1.50% NAV (well within 5%), aggregate High Yield unchanged at 14.20% (within 15%) because the split-rated bond's higher S&P BBB- rating governs per Section 2.02(b). No qualitative ambiguity arises under Sections 5.01(b) or 5.02 as the prospectus notes only describe the split rating without indicating coal freight or SPV opacity."
+        },
+        "llm_model_used": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "llm_latency_ms": 68623.6,
+        "naive_llm_verdict": "BREACH",
+        "naive_llm_rationale": "A naive LLM might incorrectly classify the split-rated bond as High Yield based on Moody's Ba1 rating, causing the aggregate High Yield exposure to appear to breach the 15% ceiling, and might also fail to aggregate parent-subsidiary exposure under Section 1.04.",
+        "critic_verification": {
+          "verbatim_quote_verified": true,
+          "fallback_grounding_applied": true,
+          "verified_char_start": 2110,
+          "verified_char_end": 2838,
+          "verified_quote_snippet": "* **Section 2.02 (Split-Rated Securities Rule):**\n  * **(a)** If a security is rated by both S&P and Moody's and both ratings fall within Investment Grade, it i...",
+          "critic_intervened": false,
+          "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+          "llm_raw_verdict": "PASS",
+          "deterministic_status": "PASS"
+        },
+        "final_verdict": "PASS",
+        "final_primary_clause": "Section 2.02(b)",
+        "final_audit_rationale": "[Section 3.01(a) -> PASS] Direct exposure to Ford Motor Credit Co LLC (ISS-FMCC) moves from 0.00% to 1.50% of NAV (Limit: 5.00%). | [Section 3.01(b) -> PASS] Aggregated group exposure under ultimate_parent_id=PAR-F (Ford Motor Co) moves from 0.00% to 1.50% of NAV per Section 1.04 & Section 3.01(b). | [Section 2.02(b) -> PASS] Split-rated (S&P BBB- vs Moody's Ba1); higher rating (S&P BBB-) governs as Investment Grade per Section 2.02(b). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%). || LLM Semantic Note: The deterministic engine confirms the trade passes all quantitative limits: direct and parent-aggregated exposure at 1.50% NAV (well within 5%), aggregate High Yield unchanged at 14.20% (within 15%) because the split-rated bond's higher S&P BBB- rating governs per Section 2.02(b). No qualitative ambiguity arises under Sections 5.01(b) or 5.02 as the prospectus notes only describe the split rating without indicating coal freight or SPV opacity. || Source Provenance: IPS-APEX-2026-V4 [Section 2.02(b), chars 2110..2838]",
+        "human_review_required": false
+      }
+    },
+    {
+      "test_id": "TC-05",
+      "title": "High-Yield Energy Sector Sub-Cap Breach",
+      "description": "Purchase of $700K Permian Resources (BB/Ba2) High-Yield Energy bond. Total High Yield moves from 14.20% to 14.90% (<= 15.00% overall cap), but High-Yield Energy moves from 4.50% to 5.20% (> 5.00% sub-cap).",
+      "expected_verdict": "BREACH",
+      "expected_primary_clause": "Section 3.02(b)",
+      "ground_truth_rationale": "Passes Section 2.01 (Total High Yield = 14.90% <= 15.00%), but breaches Section 3.02(b): High-Yield Energy holdings ($3.10M OXY + $1.40M CHK + $0.70M PR = $5.20M, or 5.20% of NAV) exceed the 5.00% High-Yield Energy Sub-Cap.",
+      "naive_single_llm_verdict": "PASS",
+      "naive_single_llm_reason": "FALSE NEGATIVE: Total High-Yield is 14.90% (<= 15.00% overall cap); misses the 5.00% High-Yield Energy sub-cap (reaches 5.20%). (LLM Note: A naive LLM would miss the aggregated high\u2011yield Energy sub\u2011cap limit and the parent\u2011group aggregation, potentially approving a trade that exceeds the 5% Energy high\u2011yield ceiling.)",
+      "naive_single_llm_correct": false,
+      "node3_raw_llm_verdict": "BREACH",
+      "node3_raw_llm_correct": true,
+      "hybrid_final_verdict": "BREACH",
+      "hybrid_final_clause": "Section 3.02(b)",
+      "hybrid_correct": true,
+      "critic_intervened": false,
+      "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+      "verbatim_quote_verified": true,
+      "fallback_grounding_applied": true,
+      "verified_char_span": "2894..3310",
+      "verified_quote_snippet": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issue...",
+      "llm_model_used": "cohere/north-mini-code:free",
+      "llm_latency_ms": 12775.1,
+      "full_state": {
+        "test_id": "TC-05",
+        "proposed_trade": {
+          "trade_id": "TRD-2026-005",
+          "action": "BUY",
+          "issuer_id": "ISS-PR",
+          "issuer_name": "Permian Resources Operating LLC",
+          "ultimate_parent_id": "PAR-PR",
+          "ultimate_parent_name": "Permian Resources Corp",
+          "asset_class": "CORPORATE_BOND",
+          "gics_sector": "Energy",
+          "rating_sp": "BB",
+          "rating_moodys": "Ba2",
+          "currency": "USD",
+          "is_fx_hedged": true,
+          "is_oecd_country": true,
+          "thermal_coal_revenue_pct": 0.0,
+          "trade_amount_usd": 700000.0,
+          "prospectus_supplement_notes": "Senior notes issued by independent oil & gas exploration company."
+        },
+        "trace_log": [
+          {
+            "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
+            "latency_ms": 2.12,
+            "clauses_retrieved": [
+              "Section 3.01",
+              "Section 1.04",
+              "Section 3.02",
+              "Section 1.03"
+            ],
+            "top_hybrid_score": 14.713
+          },
+          {
+            "node": "Node 2: Schema-Pruned Deterministic Calculator",
+            "latency_ms": 0.17,
+            "deterministic_status": "BREACH",
+            "breach_clauses": [
+              "Section 3.02(b)"
+            ],
+            "escalation_clauses": [],
+            "token_reduction_pct": 99.9933
+          },
+          {
+            "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
+            "model": "cohere/north-mini-code:free",
+            "latency_ms": 12775.1,
+            "llm_verdict": "BREACH",
+            "llm_primary_clause": "Section 3.02(b)"
+          },
+          {
+            "node": "Node 4: Grounding & Asymmetric Safety Critic",
+            "latency_ms": 0.53,
+            "final_verdict": "BREACH",
+            "final_primary_clause": "Section 3.02(b)",
+            "critic_intervened": false,
+            "char_span": "2894..3310"
+          }
+        ],
+        "retrieved_clauses": [
+          {
+            "clause_id": "Section 3.01",
+            "title": "Single-Issuer Concentration Limit",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issuer to exceed **5.00% of total Fund NAV** on a post-trade basis.\n  * **(b) Affiliated Group Limit:** Pursuant to Section 1.04, the **5.00% of total Fund NAV** limit applies to the combined market value of all securities sharing the same `ultimate_parent_id`.",
+            "char_start": 2894,
+            "char_end": 3310,
+            "bm25_score": 20.0611,
+            "tfidf_cosine_score": 0.2234,
+            "hybrid_score": 14.713,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.04",
+            "title": "\"Single-Issuer Group\" / Parent-Subsidiary Aggregation",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.04 (\"Single-Issuer Group\" / Parent-Subsidiary Aggregation):** For all concentration limits under Article III, holdings issued by a parent corporation and all of its majority-owned subsidiaries or guaranteed affiliates (sharing the same `ultimate_parent_id` in the Fund's security master) **must be aggregated and treated as a single issuer**.",
+            "char_start": 1182,
+            "char_end": 1538,
+            "bm25_score": 20.1513,
+            "tfidf_cosine_score": 0.1906,
+            "hybrid_score": 14.6777,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 3.02",
+            "title": "Sector & High-Yield Sub-Limits",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.02 (Sector & High-Yield Sub-Limits):**\n  * **(a) Broad Sector Limit:** No single GICS sector may exceed **25.00% of total Fund NAV**.\n  * **(b) High-Yield Energy Sub-Cap:** Aggregate holdings in **High Yield (Below-Investment-Grade) issuers within the `Energy` sector** shall not exceed **5.00% of total Fund NAV** on a post-trade basis.",
+            "char_start": 3311,
+            "char_end": 3662,
+            "bm25_score": 18.457,
+            "tfidf_cosine_score": 0.1606,
+            "hybrid_score": 13.4017,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.03",
+            "title": "\"High Yield\" or \"Below-Investment-Grade\"",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.03 (\"High Yield\" or \"Below-Investment-Grade\"):** Means any debt security rated below `BBB-` (S&P/Fitch) or below `Baa3` (Moody's), or unrated securities deemed equivalent by the Adviser.",
+            "char_start": 981,
+            "char_end": 1181,
+            "bm25_score": 8.2031,
+            "tfidf_cosine_score": 0.0931,
+            "hybrid_score": 6.0215,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          }
+        ],
+        "deterministic_bundle": {
+          "trade_id": "TRD-2026-005",
+          "total_nav_usd": 100000000.0,
+          "overall_deterministic_status": "BREACH",
+          "triggered_breach_clauses": [
+            "Section 3.02(b)"
+          ],
+          "triggered_escalation_clauses": [],
+          "rule_checks": [
+            {
+              "rule_id": "RULE-301A-ISSUER",
+              "rule_name": "Direct Single-Issuer Concentration Limit",
+              "clause_citation": "Section 3.01(a)",
+              "pre_trade_metric": "$0 (0.00% NAV)",
+              "post_trade_metric": "$700,000 (0.70% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Direct exposure to Permian Resources Operating LLC (ISS-PR) moves from 0.00% to 0.70% of NAV (Limit: 5.00%)."
+            },
+            {
+              "rule_id": "RULE-301B-PARENT",
+              "rule_name": "Single-Issuer Group (Parent-Subsidiary) Aggregation Limit",
+              "clause_citation": "Section 3.01(b)",
+              "pre_trade_metric": "$0 (0.00% NAV)",
+              "post_trade_metric": "$700,000 (0.70% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Aggregated group exposure under ultimate_parent_id=PAR-PR (Permian Resources Corp) moves from 0.00% to 0.70% of NAV per Section 1.04 & Section 3.01(b)."
+            },
+            {
+              "rule_id": "RULE-201-HY",
+              "rule_name": "Credit Quality & Aggregate High-Yield Ceiling",
+              "clause_citation": "Section 2.01",
+              "pre_trade_metric": "$14,200,000 (14.20% NAV)",
+              "post_trade_metric": "$14,900,000 (14.90% NAV)",
+              "threshold_limit": "<= 15.00% NAV (Higher split rating governs per Sec 2.02(b))",
+              "status": "PASS",
+              "deterministic_explanation": "Both agencies rate Below-Investment-Grade (S&P BB, Moody's Ba2) per Section 1.03. Aggregate High-Yield exposure post-trade: 14.90% (Limit: 15.00%)."
+            },
+            {
+              "rule_id": "RULE-302B-HY-ENERGY",
+              "rule_name": "High-Yield Energy Sector Sub-Cap",
+              "clause_citation": "Section 3.02(b)",
+              "pre_trade_metric": "$4,500,000 (4.50% NAV)",
+              "post_trade_metric": "$5,200,000 (5.20% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "BREACH",
+              "deterministic_explanation": "High-Yield Energy exposure moves from 4.50% to 5.20% of NAV (Sub-Cap Limit: 5.00% under Section 3.02(b))."
+            },
+            {
+              "rule_id": "RULE-401-FX",
+              "rule_name": "Foreign Currency Hedging & OECD Sovereign Exception",
+              "clause_citation": "Section 4.01(a)",
+              "pre_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "post_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "threshold_limit": "100% Hedged (Corporate) OR <= 10.00% NAV Unhedged OECD Sovereign",
+              "status": "PASS",
+              "deterministic_explanation": "Security is USD-denominated; complies with Section 4.01(a)."
+            },
+            {
+              "rule_id": "RULE-501-502-ESG-SPV",
+              "rule_name": "ESG Thermal Coal & Sanctions Look-Through Gate",
+              "clause_citation": "Section 5.01(a)",
+              "pre_trade_metric": "Direct Coal Rev: 0.0%",
+              "post_trade_metric": "Asset Class: CORPORATE_BOND",
+              "threshold_limit": "Coal <= 10.0% & Full Look-Through Transparency",
+              "status": "PASS",
+              "deterministic_explanation": "Direct thermal coal revenue is 0.0% (<= 10.0%) and no SPV look-through opacity detected."
+            }
+          ],
+          "pruned_schema_summary": {
+            "target_issuer_pre_trade_usd": 0,
+            "target_parent_group_pre_trade_usd": 0,
+            "aggregate_high_yield_pre_trade_usd": 14200000.0,
+            "high_yield_energy_pre_trade_usd": 4500000.0,
+            "unhedged_oecd_sovereign_pre_trade_usd": 7500000.0,
+            "credit_classification_by_rule_202": "HIGH_YIELD"
+          },
+          "token_budget_stats": {
+            "unpruned_75k_holdings_estimated_tokens": 3600000,
+            "schema_pruned_slice_tokens": 240,
+            "token_reduction_pct": 99.9933,
+            "excluded_sensitive_columns": [
+              "custodian_account_number",
+              "prime_broker_Clearance_code",
+              "trader_desk_internal_notes",
+              "fix_protocol_raw_payload",
+              "settlement_wire_aba_routing"
+            ]
+          }
+        },
+        "llm_raw_output": {
+          "llm_verdict": "BREACH",
+          "naive_single_prompt_verdict_without_rules_engine": "PASS",
+          "naive_single_prompt_flaw": "A naive LLM would miss the aggregated high\u2011yield Energy sub\u2011cap limit and the parent\u2011group aggregation, potentially approving a trade that exceeds the 5% Energy high\u2011yield ceiling.",
+          "primary_clause": "Section 3.02(b)",
+          "verbatim_quote": "Aggregate holdings in High Yield (Below-Investment-Grade) issuers within the Energy sector shall not exceed 5.00% of total Fund NAV on a post-trade basis.",
+          "qualitative_ambiguity_detected": false,
+          "semantic_analysis": "Deterministic math shows the high\u2011yield Energy exposure rises to 5.20% of NAV, breaching the 5.00% limit under Section 3.02(b). The prospectus supplement notes contain no mention of coal freight/transport infrastructure or SPV opacity, so no qualitative ambiguity under Sections 5.01(b) or 5.02."
+        },
+        "llm_model_used": "cohere/north-mini-code:free",
+        "llm_latency_ms": 12775.1,
+        "naive_llm_verdict": "PASS",
+        "naive_llm_rationale": "A naive LLM would miss the aggregated high\u2011yield Energy sub\u2011cap limit and the parent\u2011group aggregation, potentially approving a trade that exceeds the 5% Energy high\u2011yield ceiling.",
+        "critic_verification": {
+          "verbatim_quote_verified": true,
+          "fallback_grounding_applied": true,
+          "verified_char_start": 2894,
+          "verified_char_end": 3310,
+          "verified_quote_snippet": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issue...",
+          "critic_intervened": false,
+          "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+          "llm_raw_verdict": "BREACH",
+          "deterministic_status": "BREACH"
+        },
+        "final_verdict": "BREACH",
+        "final_primary_clause": "Section 3.02(b)",
+        "final_audit_rationale": "[Section 3.02(b) -> BREACH] High-Yield Energy exposure moves from 4.50% to 5.20% of NAV (Sub-Cap Limit: 5.00% under Section 3.02(b)). || LLM Semantic Note: Deterministic math shows the high\u2011yield Energy exposure rises to 5.20% of NAV, breaching the 5.00% limit under Section 3.02(b). The prospectus supplement notes contain no mention of coal freight/transport infrastructure or SPV opacity, so no qualitative ambiguity under Sections 5.01(b) or 5.02. || Source Provenance: IPS-APEX-2026-V4 [Section 3.02(b), chars 2894..3310]",
+        "human_review_required": true
+      }
+    },
+    {
+      "test_id": "TC-06",
+      "title": "Unhedged Non-USD Debt \u2014 Eligible OECD Sovereign Carve-Out",
+      "description": "Purchase of $1.20M unhedged UK Gilt (GBP Sovereign Bond, OECD Member). Existing unhedged OECD sovereign debt is $7.50M ($3.50M JGB + $4.00M Bund).",
+      "expected_verdict": "PASS",
+      "expected_primary_clause": "Section 4.01(b)",
+      "ground_truth_rationale": "Qualifies for the Section 4.01(b) Eligible OECD Sovereign Carve-Out: UK is an OECD member, asset_class is SOVEREIGN_BOND, and post-trade unhedged non-USD sovereign exposure is $8.70M (8.70% <= 10.00% cap).",
+      "naive_single_llm_verdict": "PASS",
+      "naive_single_llm_reason": "UK Gilt is an OECD sovereign bond, qualifying for the unhedged non-USD sovereign exception. (LLM Note: A naive LLM would likely miss the OECD sovereign carve\u2011out and treat the unhedged GBP exposure as a violation of the general hedging rule.)",
+      "naive_single_llm_correct": true,
+      "node3_raw_llm_verdict": "PASS",
+      "node3_raw_llm_correct": true,
+      "hybrid_final_verdict": "PASS",
+      "hybrid_final_clause": "Section 4.01(b)",
+      "hybrid_correct": true,
+      "critic_intervened": false,
+      "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+      "verbatim_quote_verified": true,
+      "fallback_grounding_applied": false,
+      "verified_char_span": "4731..4879",
+      "verified_quote_snippet": "The security is a direct sovereign obligation (`asset_class = \"SOVEREIGN_BOND\"`) of an **Eligible OECD Sovereign** (as defined in Section 1.05); AND",
+      "llm_model_used": "cohere/north-mini-code:free",
+      "llm_latency_ms": 24601.6,
+      "full_state": {
+        "test_id": "TC-06",
+        "proposed_trade": {
+          "trade_id": "TRD-2026-006",
+          "action": "BUY",
+          "issuer_id": "ISS-UKGILT",
+          "issuer_name": "United Kingdom HM Treasury Gilt 4.00%",
+          "ultimate_parent_id": "PAR-UK-SOV",
+          "ultimate_parent_name": "United Kingdom HM Treasury",
+          "asset_class": "SOVEREIGN_BOND",
+          "gics_sector": "Sovereign",
+          "rating_sp": "AA",
+          "rating_moodys": "Aa3",
+          "currency": "GBP",
+          "is_fx_hedged": false,
+          "is_oecd_country": true,
+          "thermal_coal_revenue_pct": 0.0,
+          "trade_amount_usd": 1200000.0,
+          "prospectus_supplement_notes": "Direct sovereign obligation of the United Kingdom (OECD Member State), unhedged GBP exposure."
+        },
+        "trace_log": [
+          {
+            "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
+            "latency_ms": 1.12,
+            "clauses_retrieved": [
+              "Section 4.01",
+              "Section 1.05",
+              "Section 3.01",
+              "Section 1.04"
+            ],
+            "top_hybrid_score": 35.1455
+          },
+          {
+            "node": "Node 2: Schema-Pruned Deterministic Calculator",
+            "latency_ms": 0.1,
+            "deterministic_status": "PASS",
+            "breach_clauses": [],
+            "escalation_clauses": [],
+            "token_reduction_pct": 99.9933
+          },
+          {
+            "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
+            "model": "cohere/north-mini-code:free",
+            "latency_ms": 24601.6,
+            "llm_verdict": "PASS",
+            "llm_primary_clause": "Section 4.01(b)"
+          },
+          {
+            "node": "Node 4: Grounding & Asymmetric Safety Critic",
+            "latency_ms": 0.03,
+            "final_verdict": "PASS",
+            "final_primary_clause": "Section 4.01(b)",
+            "critic_intervened": false,
+            "char_span": "4731..4879"
+          }
+        ],
+        "retrieved_clauses": [
+          {
+            "clause_id": "Section 4.01",
+            "title": "Non-USD Currency Exposure",
+            "article_header": "ARTICLE IV \u2014 CURRENCY & FOREIGN EXCHANGE RESTRICTIONS",
+            "text": "* **Section 4.01 (Non-USD Currency Exposure):**\n  * **(a) General Hedging Requirement:** All non-USD denominated corporate and municipal securities must be `100% currency-hedged` back to `USD` at the time of trade execution (`is_fx_hedged = true`). Unhedged non-USD corporate debt purchases are prohibited.\n  * **(b) Eligible OECD Sovereign Carve-Out:** By way of exception to Section 4.01(a), the Fund may purchase **unhedged (`is_fx_hedged = false`) non-USD debt securities** provided that:\n    1. The security is a direct sovereign obligation (`asset_class = \"SOVEREIGN_BOND\"`) of an **Eligible OECD Sovereign** (as defined in Section 1.05); AND\n    2. Total unhedged non-USD sovereign exposure across the entire Fund does not exceed **10.00% of total Fund NAV** post-trade.",
+            "char_start": 4231,
+            "char_end": 5008,
+            "bm25_score": 48.266,
+            "tfidf_cosine_score": 0.4531,
+            "hybrid_score": 35.1455,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.05",
+            "title": "\"Eligible OECD Sovereign\"",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.05 (\"Eligible OECD Sovereign\"):** Means the central government or central bank of a country that is a full member of the Organisation for Economic Co-operation and Development (OECD) as of the trade date (including, without limitation, the United States, United Kingdom, Japan, Germany, France, and Canada).",
+            "char_start": 1539,
+            "char_end": 1860,
+            "bm25_score": 31.1598,
+            "tfidf_cosine_score": 0.311,
+            "hybrid_score": 22.7449,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 3.01",
+            "title": "Single-Issuer Concentration Limit",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issuer to exceed **5.00% of total Fund NAV** on a post-trade basis.\n  * **(b) Affiliated Group Limit:** Pursuant to Section 1.04, the **5.00% of total Fund NAV** limit applies to the combined market value of all securities sharing the same `ultimate_parent_id`.",
+            "char_start": 2894,
+            "char_end": 3310,
+            "bm25_score": 20.0611,
+            "tfidf_cosine_score": 0.182,
+            "hybrid_score": 14.5889,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.04",
+            "title": "\"Single-Issuer Group\" / Parent-Subsidiary Aggregation",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.04 (\"Single-Issuer Group\" / Parent-Subsidiary Aggregation):** For all concentration limits under Article III, holdings issued by a parent corporation and all of its majority-owned subsidiaries or guaranteed affiliates (sharing the same `ultimate_parent_id` in the Fund's security master) **must be aggregated and treated as a single issuer**.",
+            "char_start": 1182,
+            "char_end": 1538,
+            "bm25_score": 16.0211,
+            "tfidf_cosine_score": 0.1266,
+            "hybrid_score": 11.5945,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          }
+        ],
+        "deterministic_bundle": {
+          "trade_id": "TRD-2026-006",
+          "total_nav_usd": 100000000.0,
+          "overall_deterministic_status": "PASS",
+          "triggered_breach_clauses": [],
+          "triggered_escalation_clauses": [],
+          "rule_checks": [
+            {
+              "rule_id": "RULE-301A-ISSUER",
+              "rule_name": "Direct Single-Issuer Concentration Limit",
+              "clause_citation": "Section 3.01(a)",
+              "pre_trade_metric": "$0 (0.00% NAV)",
+              "post_trade_metric": "$1,200,000 (1.20% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Direct exposure to United Kingdom HM Treasury Gilt 4.00% (ISS-UKGILT) moves from 0.00% to 1.20% of NAV (Limit: 5.00%)."
+            },
+            {
+              "rule_id": "RULE-301B-PARENT",
+              "rule_name": "Single-Issuer Group (Parent-Subsidiary) Aggregation Limit",
+              "clause_citation": "Section 3.01(b)",
+              "pre_trade_metric": "$0 (0.00% NAV)",
+              "post_trade_metric": "$1,200,000 (1.20% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Aggregated group exposure under ultimate_parent_id=PAR-UK-SOV (United Kingdom HM Treasury) moves from 0.00% to 1.20% of NAV per Section 1.04 & Section 3.01(b)."
+            },
+            {
+              "rule_id": "RULE-201-HY",
+              "rule_name": "Credit Quality & Aggregate High-Yield Ceiling",
+              "clause_citation": "Section 2.01",
+              "pre_trade_metric": "$14,200,000 (14.20% NAV)",
+              "post_trade_metric": "$14,200,000 (14.20% NAV)",
+              "threshold_limit": "<= 15.00% NAV (Higher split rating governs per Sec 2.02(b))",
+              "status": "PASS",
+              "deterministic_explanation": "Both agencies rate Investment Grade (S&P AA, Moody's Aa3) per Section 2.02(a). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%)."
+            },
+            {
+              "rule_id": "RULE-302B-HY-ENERGY",
+              "rule_name": "High-Yield Energy Sector Sub-Cap",
+              "clause_citation": "Section 3.02(b)",
+              "pre_trade_metric": "$4,500,000 (4.50% NAV)",
+              "post_trade_metric": "$4,500,000 (4.50% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "High-Yield Energy exposure moves from 4.50% to 4.50% of NAV (Sub-Cap Limit: 5.00% under Section 3.02(b))."
+            },
+            {
+              "rule_id": "RULE-401-FX",
+              "rule_name": "Foreign Currency Hedging & OECD Sovereign Exception",
+              "clause_citation": "Section 4.01(b)",
+              "pre_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "post_trade_metric": "Unhedged Sov: $8,700,000 (8.70% NAV)",
+              "threshold_limit": "100% Hedged (Corporate) OR <= 10.00% NAV Unhedged OECD Sovereign",
+              "status": "PASS",
+              "deterministic_explanation": "Unhedged GBP obligation qualifies for Section 4.01(b) Eligible OECD Sovereign Carve-Out (asset_class=SOVEREIGN_BOND, is_oecd_country=True). Post-trade unhedged OECD sovereign bucket: 8.70% (Limit: 10.00%)."
+            },
+            {
+              "rule_id": "RULE-501-502-ESG-SPV",
+              "rule_name": "ESG Thermal Coal & Sanctions Look-Through Gate",
+              "clause_citation": "Section 5.01(a)",
+              "pre_trade_metric": "Direct Coal Rev: 0.0%",
+              "post_trade_metric": "Asset Class: SOVEREIGN_BOND",
+              "threshold_limit": "Coal <= 10.0% & Full Look-Through Transparency",
+              "status": "PASS",
+              "deterministic_explanation": "Direct thermal coal revenue is 0.0% (<= 10.0%) and no SPV look-through opacity detected."
+            }
+          ],
+          "pruned_schema_summary": {
+            "target_issuer_pre_trade_usd": 0,
+            "target_parent_group_pre_trade_usd": 0,
+            "aggregate_high_yield_pre_trade_usd": 14200000.0,
+            "high_yield_energy_pre_trade_usd": 4500000.0,
+            "unhedged_oecd_sovereign_pre_trade_usd": 7500000.0,
+            "credit_classification_by_rule_202": "INVESTMENT_GRADE"
+          },
+          "token_budget_stats": {
+            "unpruned_75k_holdings_estimated_tokens": 3600000,
+            "schema_pruned_slice_tokens": 240,
+            "token_reduction_pct": 99.9933,
+            "excluded_sensitive_columns": [
+              "custodian_account_number",
+              "prime_broker_Clearance_code",
+              "trader_desk_internal_notes",
+              "fix_protocol_raw_payload",
+              "settlement_wire_aba_routing"
+            ]
+          }
+        },
+        "llm_raw_output": {
+          "llm_verdict": "PASS",
+          "naive_single_prompt_verdict_without_rules_engine": "BREACH",
+          "naive_single_prompt_flaw": "A naive LLM would likely miss the OECD sovereign carve\u2011out and treat the unhedged GBP exposure as a violation of the general hedging rule.",
+          "primary_clause": "Section 4.01(b)",
+          "verbatim_quote": "The security is a direct sovereign obligation (`asset_class = \"SOVEREIGN_BOND\"`) of an **Eligible OECD Sovereign** (as defined in Section 1.05); AND",
+          "qualitative_ambiguity_detected": false,
+          "semantic_analysis": "Deterministic calculations show the trade adds 1.20% NAV exposure to the UK sovereign issuer, well within the 5.00% single\u2011issuer limit and the 10.00% unhedged OECD sovereign cap, resulting in a PASS. The prospectus supplement notes only a direct sovereign obligation with no mention of coal freight, transport infrastructure, or opaque SPV structures, so no qualitative ambiguity under Sections\u202f5.01(b) or\u202f5.02 is detected."
+        },
+        "llm_model_used": "cohere/north-mini-code:free",
+        "llm_latency_ms": 24601.6,
+        "naive_llm_verdict": "BREACH",
+        "naive_llm_rationale": "A naive LLM would likely miss the OECD sovereign carve\u2011out and treat the unhedged GBP exposure as a violation of the general hedging rule.",
+        "critic_verification": {
+          "verbatim_quote_verified": true,
+          "fallback_grounding_applied": false,
+          "verified_char_start": 4731,
+          "verified_char_end": 4879,
+          "verified_quote_snippet": "The security is a direct sovereign obligation (`asset_class = \"SOVEREIGN_BOND\"`) of an **Eligible OECD Sovereign** (as defined in Section 1.05); AND",
+          "critic_intervened": false,
+          "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+          "llm_raw_verdict": "PASS",
+          "deterministic_status": "PASS"
+        },
+        "final_verdict": "PASS",
+        "final_primary_clause": "Section 4.01(b)",
+        "final_audit_rationale": "[Section 3.01(a) -> PASS] Direct exposure to United Kingdom HM Treasury Gilt 4.00% (ISS-UKGILT) moves from 0.00% to 1.20% of NAV (Limit: 5.00%). | [Section 3.01(b) -> PASS] Aggregated group exposure under ultimate_parent_id=PAR-UK-SOV (United Kingdom HM Treasury) moves from 0.00% to 1.20% of NAV per Section 1.04 & Section 3.01(b). | [Section 2.01 -> PASS] Both agencies rate Investment Grade (S&P AA, Moody's Aa3) per Section 2.02(a). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%). || LLM Semantic Note: Deterministic calculations show the trade adds 1.20% NAV exposure to the UK sovereign issuer, well within the 5.00% single\u2011issuer limit and the 10.00% unhedged OECD sovereign cap, resulting in a PASS. The prospectus supplement notes only a direct sovereign obligation with no mention of coal freight, transport infrastructure, or opaque SPV structures, so no qualitative ambiguity under Sections\u202f5.01(b) or\u202f5.02 is detected. || Source Provenance: IPS-APEX-2026-V4 [Section 4.01(b), chars 4731..4879]",
+        "human_review_required": false
+      }
+    },
+    {
+      "test_id": "TC-07",
+      "title": "Unhedged Non-USD Corporate Bond in OECD Country (Carve-Out Misapplication Trap)",
+      "description": "Purchase of $1.00M unhedged EUR corporate bond issued by Siemens AG (Germany, OECD member). Tests if the system confuses OECD corporate debt with OECD sovereign debt.",
+      "expected_verdict": "BREACH",
+      "expected_primary_clause": "Section 4.01(a)",
+      "ground_truth_rationale": "Breaches Section 4.01(a): Even though Germany is an OECD member, the Section 4.01(b) unhedged FX carve-out applies strictly to direct sovereign obligations (SOVEREIGN_BOND), not corporate bonds (CORPORATE_BOND).",
+      "naive_single_llm_verdict": "BREACH",
+      "naive_single_llm_reason": "Unhedged EUR corporate bond violates Section 4.01(a) hedging requirement. (LLM Note: A naive LLM could mistakenly focus on the issuer's strong investment-grade ratings and low concentration percentages, overlooking the strict 100% FX hedging requirement for corporate bonds and incorrectly applying the OECD sovereign exception to this corporate entity.)",
+      "naive_single_llm_correct": true,
+      "node3_raw_llm_verdict": "BREACH",
+      "node3_raw_llm_correct": true,
+      "hybrid_final_verdict": "BREACH",
+      "hybrid_final_clause": "Section 4.01(a)",
+      "hybrid_correct": true,
+      "critic_intervened": false,
+      "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+      "verbatim_quote_verified": true,
+      "fallback_grounding_applied": false,
+      "verified_char_span": "4320..4479",
+      "verified_quote_snippet": "All non-USD denominated corporate and municipal securities must be `100% currency-hedged` back to `USD` at the time of trade execution (`is_fx_hedged = true`).",
+      "llm_model_used": "dots-studio/dots-3-note-preview:free",
+      "llm_latency_ms": 33447.5,
+      "full_state": {
+        "test_id": "TC-07",
+        "proposed_trade": {
+          "trade_id": "TRD-2026-007",
+          "action": "BUY",
+          "issuer_id": "ISS-SIE",
+          "issuer_name": "Siemens Financieringsmaatschappij NV",
+          "ultimate_parent_id": "PAR-SIE",
+          "ultimate_parent_name": "Siemens AG",
+          "asset_class": "CORPORATE_BOND",
+          "gics_sector": "Industrials",
+          "rating_sp": "AA-",
+          "rating_moodys": "Aa3",
+          "currency": "EUR",
+          "is_fx_hedged": false,
+          "is_oecd_country": true,
+          "thermal_coal_revenue_pct": 0.0,
+          "trade_amount_usd": 1000000.0,
+          "prospectus_supplement_notes": "Senior EUR-denominated corporate notes issued by Siemens, unhedged."
+        },
+        "trace_log": [
+          {
+            "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
+            "latency_ms": 0.76,
+            "clauses_retrieved": [
+              "Section 4.01",
+              "Section 3.01",
+              "Section 1.04",
+              "Section 3.03",
+              "Section 1.05"
+            ],
+            "top_hybrid_score": 21.3659
+          },
+          {
+            "node": "Node 2: Schema-Pruned Deterministic Calculator",
+            "latency_ms": 0.08,
+            "deterministic_status": "BREACH",
+            "breach_clauses": [
+              "Section 4.01(a)"
+            ],
+            "escalation_clauses": [],
+            "token_reduction_pct": 99.9933
+          },
+          {
+            "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
+            "model": "dots-studio/dots-3-note-preview:free",
+            "latency_ms": 33447.5,
+            "llm_verdict": "BREACH",
+            "llm_primary_clause": "Section 4.01(a)"
+          },
+          {
+            "node": "Node 4: Grounding & Asymmetric Safety Critic",
+            "latency_ms": 0.3,
+            "final_verdict": "BREACH",
+            "final_primary_clause": "Section 4.01(a)",
+            "critic_intervened": false,
+            "char_span": "4320..4479"
+          }
+        ],
+        "retrieved_clauses": [
+          {
+            "clause_id": "Section 4.01",
+            "title": "Non-USD Currency Exposure",
+            "article_header": "ARTICLE IV \u2014 CURRENCY & FOREIGN EXCHANGE RESTRICTIONS",
+            "text": "* **Section 4.01 (Non-USD Currency Exposure):**\n  * **(a) General Hedging Requirement:** All non-USD denominated corporate and municipal securities must be `100% currency-hedged` back to `USD` at the time of trade execution (`is_fx_hedged = true`). Unhedged non-USD corporate debt purchases are prohibited.\n  * **(b) Eligible OECD Sovereign Carve-Out:** By way of exception to Section 4.01(a), the Fund may purchase **unhedged (`is_fx_hedged = false`) non-USD debt securities** provided that:\n    1. The security is a direct sovereign obligation (`asset_class = \"SOVEREIGN_BOND\"`) of an **Eligible OECD Sovereign** (as defined in Section 1.05); AND\n    2. Total unhedged non-USD sovereign exposure across the entire Fund does not exceed **10.00% of total Fund NAV** post-trade.",
+            "char_start": 4231,
+            "char_end": 5008,
+            "bm25_score": 29.0957,
+            "tfidf_cosine_score": 0.333,
+            "hybrid_score": 21.3659,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 3.01",
+            "title": "Single-Issuer Concentration Limit",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issuer to exceed **5.00% of total Fund NAV** on a post-trade basis.\n  * **(b) Affiliated Group Limit:** Pursuant to Section 1.04, the **5.00% of total Fund NAV** limit applies to the combined market value of all securities sharing the same `ultimate_parent_id`.",
+            "char_start": 2894,
+            "char_end": 3310,
+            "bm25_score": 20.0611,
+            "tfidf_cosine_score": 0.2177,
+            "hybrid_score": 14.6958,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.04",
+            "title": "\"Single-Issuer Group\" / Parent-Subsidiary Aggregation",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.04 (\"Single-Issuer Group\" / Parent-Subsidiary Aggregation):** For all concentration limits under Article III, holdings issued by a parent corporation and all of its majority-owned subsidiaries or guaranteed affiliates (sharing the same `ultimate_parent_id` in the Fund's security master) **must be aggregated and treated as a single issuer**.",
+            "char_start": 1182,
+            "char_end": 1538,
+            "bm25_score": 20.1513,
+            "tfidf_cosine_score": 0.1857,
+            "hybrid_score": 14.663,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 3.03",
+            "title": "Passive Market-Drift Cure Provision vs. Active Additions",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.03 (Passive Market-Drift Cure Provision vs. Active Additions):**\n  * If a holding or Single-Issuer Group exceeds the `5.00%` limit solely due to passive market price appreciation or NAV fluctuations (\"Passive Drift\"), the Fund is **not** required to forcibly liquidate the existing position. However, **zero incremental active purchases (`BUY` orders of any dollar amount)** may be executed in that issuer or Single-Issuer Group while its post-trade exposure remains above `5.00%` of NAV.",
+            "char_start": 3663,
+            "char_end": 4165,
+            "bm25_score": 6.94,
+            "tfidf_cosine_score": 0.0501,
+            "hybrid_score": 5.0084,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.05",
+            "title": "\"Eligible OECD Sovereign\"",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.05 (\"Eligible OECD Sovereign\"):** Means the central government or central bank of a country that is a full member of the Organisation for Economic Co-operation and Development (OECD) as of the trade date (including, without limitation, the United States, United Kingdom, Japan, Germany, France, and Canada).",
+            "char_start": 1539,
+            "char_end": 1860,
+            "bm25_score": 0.0,
+            "tfidf_cosine_score": 0.0,
+            "hybrid_score": 0.0,
+            "retrieval_reason": "CROSS_REF_EXPANSION (from Section 4.01)"
+          }
+        ],
+        "deterministic_bundle": {
+          "trade_id": "TRD-2026-007",
+          "total_nav_usd": 100000000.0,
+          "overall_deterministic_status": "BREACH",
+          "triggered_breach_clauses": [
+            "Section 4.01(a)"
+          ],
+          "triggered_escalation_clauses": [],
+          "rule_checks": [
+            {
+              "rule_id": "RULE-301A-ISSUER",
+              "rule_name": "Direct Single-Issuer Concentration Limit",
+              "clause_citation": "Section 3.01(a)",
+              "pre_trade_metric": "$0 (0.00% NAV)",
+              "post_trade_metric": "$1,000,000 (1.00% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Direct exposure to Siemens Financieringsmaatschappij NV (ISS-SIE) moves from 0.00% to 1.00% of NAV (Limit: 5.00%)."
+            },
+            {
+              "rule_id": "RULE-301B-PARENT",
+              "rule_name": "Single-Issuer Group (Parent-Subsidiary) Aggregation Limit",
+              "clause_citation": "Section 3.01(b)",
+              "pre_trade_metric": "$0 (0.00% NAV)",
+              "post_trade_metric": "$1,000,000 (1.00% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Aggregated group exposure under ultimate_parent_id=PAR-SIE (Siemens AG) moves from 0.00% to 1.00% of NAV per Section 1.04 & Section 3.01(b)."
+            },
+            {
+              "rule_id": "RULE-201-HY",
+              "rule_name": "Credit Quality & Aggregate High-Yield Ceiling",
+              "clause_citation": "Section 2.01",
+              "pre_trade_metric": "$14,200,000 (14.20% NAV)",
+              "post_trade_metric": "$14,200,000 (14.20% NAV)",
+              "threshold_limit": "<= 15.00% NAV (Higher split rating governs per Sec 2.02(b))",
+              "status": "PASS",
+              "deterministic_explanation": "Both agencies rate Investment Grade (S&P AA-, Moody's Aa3) per Section 2.02(a). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%)."
+            },
+            {
+              "rule_id": "RULE-302B-HY-ENERGY",
+              "rule_name": "High-Yield Energy Sector Sub-Cap",
+              "clause_citation": "Section 3.02(b)",
+              "pre_trade_metric": "$4,500,000 (4.50% NAV)",
+              "post_trade_metric": "$4,500,000 (4.50% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "High-Yield Energy exposure moves from 4.50% to 4.50% of NAV (Sub-Cap Limit: 5.00% under Section 3.02(b))."
+            },
+            {
+              "rule_id": "RULE-401-FX",
+              "rule_name": "Foreign Currency Hedging & OECD Sovereign Exception",
+              "clause_citation": "Section 4.01(a)",
+              "pre_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "post_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "threshold_limit": "100% Hedged (Corporate) OR <= 10.00% NAV Unhedged OECD Sovereign",
+              "status": "BREACH",
+              "deterministic_explanation": "Unhedged EUR security fails Section 4.01(a): non-USD corporate/non-sovereign securities (asset_class=CORPORATE_BOND) must be 100% FX-hedged. Section 4.01(b) carve-out applies strictly to direct sovereign obligations (SOVEREIGN_BOND) of OECD members."
+            },
+            {
+              "rule_id": "RULE-501-502-ESG-SPV",
+              "rule_name": "ESG Thermal Coal & Sanctions Look-Through Gate",
+              "clause_citation": "Section 5.01(a)",
+              "pre_trade_metric": "Direct Coal Rev: 0.0%",
+              "post_trade_metric": "Asset Class: CORPORATE_BOND",
+              "threshold_limit": "Coal <= 10.0% & Full Look-Through Transparency",
+              "status": "PASS",
+              "deterministic_explanation": "Direct thermal coal revenue is 0.0% (<= 10.0%) and no SPV look-through opacity detected."
+            }
+          ],
+          "pruned_schema_summary": {
+            "target_issuer_pre_trade_usd": 0,
+            "target_parent_group_pre_trade_usd": 0,
+            "aggregate_high_yield_pre_trade_usd": 14200000.0,
+            "high_yield_energy_pre_trade_usd": 4500000.0,
+            "unhedged_oecd_sovereign_pre_trade_usd": 7500000.0,
+            "credit_classification_by_rule_202": "INVESTMENT_GRADE"
+          },
+          "token_budget_stats": {
+            "unpruned_75k_holdings_estimated_tokens": 3600000,
+            "schema_pruned_slice_tokens": 240,
+            "token_reduction_pct": 99.9933,
+            "excluded_sensitive_columns": [
+              "custodian_account_number",
+              "prime_broker_Clearance_code",
+              "trader_desk_internal_notes",
+              "fix_protocol_raw_payload",
+              "settlement_wire_aba_routing"
+            ]
+          }
+        },
+        "llm_raw_output": {
+          "llm_verdict": "BREACH",
+          "naive_single_prompt_verdict_without_rules_engine": "PASS",
+          "naive_single_prompt_flaw": "A naive LLM could mistakenly focus on the issuer's strong investment-grade ratings and low concentration percentages, overlooking the strict 100% FX hedging requirement for corporate bonds and incorrectly applying the OECD sovereign exception to this corporate entity.",
+          "primary_clause": "Section 4.01(a)",
+          "verbatim_quote": "All non-USD denominated corporate and municipal securities must be `100% currency-hedged` back to `USD` at the time of trade execution (`is_fx_hedged = true`).",
+          "qualitative_ambiguity_detected": false,
+          "semantic_analysis": "The deterministic engine flags a BREACH under RULE-401-FX because the proposed trade is an unhedged EUR-denominated corporate bond, which violates the 100% currency-hedging requirement for non-USD corporate debt under Section 4.01(a). Since the prospectus supplement notes contain no references to orphan SPVs, synthetic swaps, or transport infrastructure, no qualitative ambiguities under Section 5.01(b) or 5.02 are triggered, confirming a straightforward compliance violation."
+        },
+        "llm_model_used": "dots-studio/dots-3-note-preview:free",
+        "llm_latency_ms": 33447.5,
+        "naive_llm_verdict": "PASS",
+        "naive_llm_rationale": "A naive LLM could mistakenly focus on the issuer's strong investment-grade ratings and low concentration percentages, overlooking the strict 100% FX hedging requirement for corporate bonds and incorrectly applying the OECD sovereign exception to this corporate entity.",
+        "critic_verification": {
+          "verbatim_quote_verified": true,
+          "fallback_grounding_applied": false,
+          "verified_char_start": 4320,
+          "verified_char_end": 4479,
+          "verified_quote_snippet": "All non-USD denominated corporate and municipal securities must be `100% currency-hedged` back to `USD` at the time of trade execution (`is_fx_hedged = true`).",
+          "critic_intervened": false,
+          "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+          "llm_raw_verdict": "BREACH",
+          "deterministic_status": "BREACH"
+        },
+        "final_verdict": "BREACH",
+        "final_primary_clause": "Section 4.01(a)",
+        "final_audit_rationale": "[Section 4.01(a) -> BREACH] Unhedged EUR security fails Section 4.01(a): non-USD corporate/non-sovereign securities (asset_class=CORPORATE_BOND) must be 100% FX-hedged. Section 4.01(b) carve-out applies strictly to direct sovereign obligations (SOVEREIGN_BOND) of OECD members. || LLM Semantic Note: The deterministic engine flags a BREACH under RULE-401-FX because the proposed trade is an unhedged EUR-denominated corporate bond, which violates the 100% currency-hedging requirement for non-USD corporate debt under Section 4.01(a). Since the prospectus supplement notes contain no references to orphan SPVs, synthetic swaps, or transport infrastructure, no qualitative ambiguities under Section 5.01(b) or 5.02 are triggered, confirming a straightforward compliance violation. || Source Provenance: IPS-APEX-2026-V4 [Section 4.01(a), chars 4320..4479]",
+        "human_review_required": true
+      }
+    },
+    {
+      "test_id": "TC-08",
+      "title": "Passive Market-Drift Cure vs. Incremental Active Purchase Prohibition",
+      "description": "Purchase of $50,000 NVIDIA Corp equity. NVIDIA currently sits at $5.15M (5.15% NAV) due to passive market appreciation (permitted to hold under Section 3.03, but banned from any active BUY).",
+      "expected_verdict": "BREACH",
+      "expected_primary_clause": "Section 3.03",
+      "ground_truth_rationale": "Breaches Section 3.03 & Section 3.01(a): While Section 3.03 allows holding existing positions that drifted above 5.00% passively ($5.15M / 5.15%), it strictly prohibits any incremental active BUY order while exposure exceeds 5.00%.",
+      "naive_single_llm_verdict": "BREACH",
+      "naive_single_llm_reason": "NVIDIA is already at 5.15% (> 5.00%); additional buy is prohibited under Section 3.03. (LLM Note: A naive LLM might incorrectly PASS the trade by treating the $50,000 purchase as de minimis and checking only the issuer name in isolation, thereby missing that Section 3.01(b) requires aggregating all securities under PAR-NVDA and that Section 3.03 bars any active BUY once passive drift has already pushed exposure to 5.15% NAV.)",
+      "naive_single_llm_correct": true,
+      "node3_raw_llm_verdict": "BREACH",
+      "node3_raw_llm_correct": true,
+      "hybrid_final_verdict": "BREACH",
+      "hybrid_final_clause": "Section 3.03",
+      "hybrid_correct": true,
+      "critic_intervened": false,
+      "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+      "verbatim_quote_verified": true,
+      "fallback_grounding_applied": true,
+      "verified_char_span": "2894..3310",
+      "verified_quote_snippet": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issue...",
+      "llm_model_used": "nvidia/nemotron-3.5-super-vl:free",
+      "llm_latency_ms": 40081.2,
+      "full_state": {
+        "test_id": "TC-08",
+        "proposed_trade": {
+          "trade_id": "TRD-2026-008",
+          "action": "BUY",
+          "issuer_id": "ISS-NVDA",
+          "issuer_name": "NVIDIA Corp",
+          "ultimate_parent_id": "PAR-NVDA",
+          "ultimate_parent_name": "NVIDIA Corp",
+          "asset_class": "EQUITY",
+          "gics_sector": "Technology",
+          "rating_sp": "AA-",
+          "rating_moodys": "Aa3",
+          "currency": "USD",
+          "is_fx_hedged": true,
+          "is_oecd_country": true,
+          "thermal_coal_revenue_pct": 0.0,
+          "trade_amount_usd": 50000.0,
+          "prospectus_supplement_notes": "Small add-on equity purchase in NVIDIA Corp."
+        },
+        "trace_log": [
+          {
+            "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
+            "latency_ms": 2.81,
+            "clauses_retrieved": [
+              "Section 3.01",
+              "Section 1.04",
+              "Section 3.03",
+              "Section 3.02"
+            ],
+            "top_hybrid_score": 17.3741
+          },
+          {
+            "node": "Node 2: Schema-Pruned Deterministic Calculator",
+            "latency_ms": 0.14,
+            "deterministic_status": "BREACH",
+            "breach_clauses": [
+              "Section 3.03",
+              "Section 3.01(b)"
+            ],
+            "escalation_clauses": [],
+            "token_reduction_pct": 99.9933
+          },
+          {
+            "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
+            "model": "nvidia/nemotron-3.5-super-vl:free",
+            "latency_ms": 40081.2,
+            "llm_verdict": "BREACH",
+            "llm_primary_clause": "Section 3.03"
+          },
+          {
+            "node": "Node 4: Grounding & Asymmetric Safety Critic",
+            "latency_ms": 0.69,
+            "final_verdict": "BREACH",
+            "final_primary_clause": "Section 3.03",
+            "critic_intervened": false,
+            "char_span": "2894..3310"
+          }
+        ],
+        "retrieved_clauses": [
+          {
+            "clause_id": "Section 3.01",
+            "title": "Single-Issuer Concentration Limit",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issuer to exceed **5.00% of total Fund NAV** on a post-trade basis.\n  * **(b) Affiliated Group Limit:** Pursuant to Section 1.04, the **5.00% of total Fund NAV** limit applies to the combined market value of all securities sharing the same `ultimate_parent_id`.",
+            "char_start": 2894,
+            "char_end": 3310,
+            "bm25_score": 23.6486,
+            "tfidf_cosine_score": 0.2734,
+            "hybrid_score": 17.3741,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.04",
+            "title": "\"Single-Issuer Group\" / Parent-Subsidiary Aggregation",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.04 (\"Single-Issuer Group\" / Parent-Subsidiary Aggregation):** For all concentration limits under Article III, holdings issued by a parent corporation and all of its majority-owned subsidiaries or guaranteed affiliates (sharing the same `ultimate_parent_id` in the Fund's security master) **must be aggregated and treated as a single issuer**.",
+            "char_start": 1182,
+            "char_end": 1538,
+            "bm25_score": 19.2771,
+            "tfidf_cosine_score": 0.1907,
+            "hybrid_score": 14.0662,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 3.03",
+            "title": "Passive Market-Drift Cure Provision vs. Active Additions",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.03 (Passive Market-Drift Cure Provision vs. Active Additions):**\n  * If a holding or Single-Issuer Group exceeds the `5.00%` limit solely due to passive market price appreciation or NAV fluctuations (\"Passive Drift\"), the Fund is **not** required to forcibly liquidate the existing position. However, **zero incremental active purchases (`BUY` orders of any dollar amount)** may be executed in that issuer or Single-Issuer Group while its post-trade exposure remains above `5.00%` of NAV.",
+            "char_start": 3663,
+            "char_end": 4165,
+            "bm25_score": 18.2793,
+            "tfidf_cosine_score": 0.2027,
+            "hybrid_score": 13.4035,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 3.02",
+            "title": "Sector & High-Yield Sub-Limits",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.02 (Sector & High-Yield Sub-Limits):**\n  * **(a) Broad Sector Limit:** No single GICS sector may exceed **25.00% of total Fund NAV**.\n  * **(b) High-Yield Energy Sub-Cap:** Aggregate holdings in **High Yield (Below-Investment-Grade) issuers within the `Energy` sector** shall not exceed **5.00% of total Fund NAV** on a post-trade basis.",
+            "char_start": 3311,
+            "char_end": 3662,
+            "bm25_score": 5.1115,
+            "tfidf_cosine_score": 0.0378,
+            "hybrid_score": 3.6914,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          }
+        ],
+        "deterministic_bundle": {
+          "trade_id": "TRD-2026-008",
+          "total_nav_usd": 100000000.0,
+          "overall_deterministic_status": "BREACH",
+          "triggered_breach_clauses": [
+            "Section 3.03",
+            "Section 3.01(b)"
+          ],
+          "triggered_escalation_clauses": [],
+          "rule_checks": [
+            {
+              "rule_id": "RULE-303-DRIFT",
+              "rule_name": "Passive Market-Drift Active Purchase Prohibition",
+              "clause_citation": "Section 3.03",
+              "pre_trade_metric": "$5,150,000 (5.15% NAV)",
+              "post_trade_metric": "$5,200,000 (5.20% NAV)",
+              "threshold_limit": "<= 5.00% NAV (0.00% active BUY allowed when > 5.00%)",
+              "status": "BREACH",
+              "deterministic_explanation": "Existing position in NVIDIA Corp is already at 5.15% NAV due to passive drift. Section 3.03 permits holding passively but strictly prohibits any incremental BUY order ($50,000)."
+            },
+            {
+              "rule_id": "RULE-301B-PARENT",
+              "rule_name": "Single-Issuer Group (Parent-Subsidiary) Aggregation Limit",
+              "clause_citation": "Section 3.01(b)",
+              "pre_trade_metric": "$5,150,000 (5.15% NAV)",
+              "post_trade_metric": "$5,200,000 (5.20% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "BREACH",
+              "deterministic_explanation": "Aggregated group exposure under ultimate_parent_id=PAR-NVDA (NVIDIA Corp) moves from 5.15% to 5.20% of NAV per Section 1.04 & Section 3.01(b)."
+            },
+            {
+              "rule_id": "RULE-201-HY",
+              "rule_name": "Credit Quality & Aggregate High-Yield Ceiling",
+              "clause_citation": "Section 2.01",
+              "pre_trade_metric": "$14,200,000 (14.20% NAV)",
+              "post_trade_metric": "$14,200,000 (14.20% NAV)",
+              "threshold_limit": "<= 15.00% NAV (Higher split rating governs per Sec 2.02(b))",
+              "status": "PASS",
+              "deterministic_explanation": "Both agencies rate Investment Grade (S&P AA-, Moody's Aa3) per Section 2.02(a). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%)."
+            },
+            {
+              "rule_id": "RULE-302B-HY-ENERGY",
+              "rule_name": "High-Yield Energy Sector Sub-Cap",
+              "clause_citation": "Section 3.02(b)",
+              "pre_trade_metric": "$4,500,000 (4.50% NAV)",
+              "post_trade_metric": "$4,500,000 (4.50% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "High-Yield Energy exposure moves from 4.50% to 4.50% of NAV (Sub-Cap Limit: 5.00% under Section 3.02(b))."
+            },
+            {
+              "rule_id": "RULE-401-FX",
+              "rule_name": "Foreign Currency Hedging & OECD Sovereign Exception",
+              "clause_citation": "Section 4.01(a)",
+              "pre_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "post_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "threshold_limit": "100% Hedged (Corporate) OR <= 10.00% NAV Unhedged OECD Sovereign",
+              "status": "PASS",
+              "deterministic_explanation": "Security is USD-denominated; complies with Section 4.01(a)."
+            },
+            {
+              "rule_id": "RULE-501-502-ESG-SPV",
+              "rule_name": "ESG Thermal Coal & Sanctions Look-Through Gate",
+              "clause_citation": "Section 5.01(a)",
+              "pre_trade_metric": "Direct Coal Rev: 0.0%",
+              "post_trade_metric": "Asset Class: EQUITY",
+              "threshold_limit": "Coal <= 10.0% & Full Look-Through Transparency",
+              "status": "PASS",
+              "deterministic_explanation": "Direct thermal coal revenue is 0.0% (<= 10.0%) and no SPV look-through opacity detected."
+            }
+          ],
+          "pruned_schema_summary": {
+            "target_issuer_pre_trade_usd": 5150000.0,
+            "target_parent_group_pre_trade_usd": 5150000.0,
+            "aggregate_high_yield_pre_trade_usd": 14200000.0,
+            "high_yield_energy_pre_trade_usd": 4500000.0,
+            "unhedged_oecd_sovereign_pre_trade_usd": 7500000.0,
+            "credit_classification_by_rule_202": "INVESTMENT_GRADE"
+          },
+          "token_budget_stats": {
+            "unpruned_75k_holdings_estimated_tokens": 3600000,
+            "schema_pruned_slice_tokens": 240,
+            "token_reduction_pct": 99.9933,
+            "excluded_sensitive_columns": [
+              "custodian_account_number",
+              "prime_broker_Clearance_code",
+              "trader_desk_internal_notes",
+              "fix_protocol_raw_payload",
+              "settlement_wire_aba_routing"
+            ]
+          }
+        },
+        "llm_raw_output": {
+          "llm_verdict": "BREACH",
+          "naive_single_prompt_verdict_without_rules_engine": "PASS",
+          "naive_single_prompt_flaw": "A naive LLM might incorrectly PASS the trade by treating the $50,000 purchase as de minimis and checking only the issuer name in isolation, thereby missing that Section 3.01(b) requires aggregating all securities under PAR-NVDA and that Section 3.03 bars any active BUY once passive drift has already pushed exposure to 5.15% NAV.",
+          "primary_clause": "Section 3.03",
+          "verbatim_quote": "zero incremental active purchases (`BUY` orders of any dollar amount) may be executed in that issuer or Single-Issuer Group while its post-trade exposure remains above `5.00%` of NAV.",
+          "qualitative_ambiguity_detected": false,
+          "semantic_analysis": "The deterministic engine shows NVIDIA Corp is already at 5.15% NAV via passive drift and the proposed $50,000 BUY would raise aggregated exposure to 5.20%, breaching the 5.00% cap under Section 3.03's active-purchase prohibition and Section 3.01(b)'s parent-group aggregation. The prospectus supplement notes contain no undisclosed coal freight, transport infrastructure, orphan SPV, or synthetic swap language, so Sections 5.01(b) and 5.02 introduce no qualitative ambiguity."
+        },
+        "llm_model_used": "nvidia/nemotron-3.5-super-vl:free",
+        "llm_latency_ms": 40081.2,
+        "naive_llm_verdict": "PASS",
+        "naive_llm_rationale": "A naive LLM might incorrectly PASS the trade by treating the $50,000 purchase as de minimis and checking only the issuer name in isolation, thereby missing that Section 3.01(b) requires aggregating all securities under PAR-NVDA and that Section 3.03 bars any active BUY once passive drift has already pushed exposure to 5.15% NAV.",
+        "critic_verification": {
+          "verbatim_quote_verified": true,
+          "fallback_grounding_applied": true,
+          "verified_char_start": 2894,
+          "verified_char_end": 3310,
+          "verified_quote_snippet": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issue...",
+          "critic_intervened": false,
+          "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+          "llm_raw_verdict": "BREACH",
+          "deterministic_status": "BREACH"
+        },
+        "final_verdict": "BREACH",
+        "final_primary_clause": "Section 3.03",
+        "final_audit_rationale": "[Section 3.03 -> BREACH] Existing position in NVIDIA Corp is already at 5.15% NAV due to passive drift. Section 3.03 permits holding passively but strictly prohibits any incremental BUY order ($50,000). | [Section 3.01(b) -> BREACH] Aggregated group exposure under ultimate_parent_id=PAR-NVDA (NVIDIA Corp) moves from 5.15% to 5.20% of NAV per Section 1.04 & Section 3.01(b). || LLM Semantic Note: The deterministic engine shows NVIDIA Corp is already at 5.15% NAV via passive drift and the proposed $50,000 BUY would raise aggregated exposure to 5.20%, breaching the 5.00% cap under Section 3.03's active-purchase prohibition and Section 3.01(b)'s parent-group aggregation. The prospectus supplement notes contain no undisclosed coal freight, transport infrastructure, orphan SPV, or synthetic swap language, so Sections 5.01(b) and 5.02 introduce no qualitative ambiguity. || Source Provenance: IPS-APEX-2026-V4 [Section 3.03, chars 2894..3310]",
+        "human_review_required": true
+      }
+    },
+    {
+      "test_id": "TC-09",
+      "title": "[Edge Case / AI Failure Mode 1] Qualitative ESG Ambiguity ('Substantially Dependent' Freight Clause)",
+      "description": "Purchase of $1.00M Heartland Rail & Bulk Logistics Corp bond. Direct thermal coal extraction revenue is 4.2% (<= 10.0% hard cap), but prospectus note discloses 22% revenue from 'mixed bulk mineral & coal rail corridors without commodity-level breakdown'.",
+      "expected_verdict": "ESCALATE_TO_HUMAN",
+      "expected_primary_clause": "Section 5.01(b)",
+      "ground_truth_rationale": "Passes the hard 10% thermal coal extraction rule in Section 5.01(a) (4.2% <= 10.0%), but triggers qualitative ambiguity under Section 5.01(b) ('substantially dependent on dedicated thermal coal transport... as determined by the Compliance Committee'). Must escalate to Human Compliance Review rather than auto-approving.",
+      "naive_single_llm_verdict": "PASS",
+      "naive_single_llm_reason": "FALSE NEGATIVE: Checks thermal_coal_revenue_pct = 4.2% (<= 10.0% limit) and auto-approves, failing to escalate Section 5.01(b) bulk coal rail freight ambiguity. (LLM Note: A naive LLM without the rules engine could incorrectly output PASS by focusing only on the 4.2% direct coal revenue being under the 10% limit, failing to recognize the qualitative ambiguity of the undisclosed 22% coal freight transport revenue under Section 5.01(b) which requires human escalation.)",
+      "naive_single_llm_correct": false,
+      "node3_raw_llm_verdict": "ESCALATE_TO_HUMAN",
+      "node3_raw_llm_correct": true,
+      "hybrid_final_verdict": "ESCALATE_TO_HUMAN",
+      "hybrid_final_clause": "Section 5.01(b)",
+      "hybrid_correct": true,
+      "critic_intervened": false,
+      "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+      "verbatim_quote_verified": true,
+      "fallback_grounding_applied": false,
+      "verified_char_span": "5424..5675",
+      "verified_quote_snippet": "The Fund shall also avoid issuers that are *\"substantially dependent on dedicated thermal coal transport or captive coal-fired logistics infrastructure,\"* as determined by the Compliance Committee upon review of underlying freight revenue disclosures.",
+      "llm_model_used": "dots-studio/dots-3-note-preview:free",
+      "llm_latency_ms": 40688.7,
+      "full_state": {
+        "test_id": "TC-09",
+        "proposed_trade": {
+          "trade_id": "TRD-2026-009",
+          "action": "BUY",
+          "issuer_id": "ISS-HRBL",
+          "issuer_name": "Heartland Rail & Bulk Logistics Corp",
+          "ultimate_parent_id": "PAR-HRBL",
+          "ultimate_parent_name": "Heartland Rail & Bulk Logistics Corp",
+          "asset_class": "CORPORATE_BOND",
+          "gics_sector": "Industrials",
+          "rating_sp": "BBB+",
+          "rating_moodys": "Baa1",
+          "currency": "USD",
+          "is_fx_hedged": true,
+          "is_oecd_country": true,
+          "thermal_coal_revenue_pct": 4.2,
+          "trade_amount_usd": 1000000.0,
+          "prospectus_supplement_notes": "Issuer derives 4.2% of revenue from legacy coal mining royalties and 22.0% of gross revenue from dedicated Powder River Basin bulk rail freight corridors transporting coal, iron ore, and grain (exact coal freight split undisclosed)."
+        },
+        "trace_log": [
+          {
+            "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
+            "latency_ms": 1.05,
+            "clauses_retrieved": [
+              "Section 5.01",
+              "Section 3.01",
+              "Section 1.04",
+              "Section 2.02",
+              "Section 2.01",
+              "Section 3.02"
+            ],
+            "top_hybrid_score": 49.7074
+          },
+          {
+            "node": "Node 2: Schema-Pruned Deterministic Calculator",
+            "latency_ms": 0.19,
+            "deterministic_status": "ESCALATE_TO_HUMAN",
+            "breach_clauses": [],
+            "escalation_clauses": [
+              "Section 5.01(b)"
+            ],
+            "token_reduction_pct": 99.9933
+          },
+          {
+            "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
+            "model": "dots-studio/dots-3-note-preview:free",
+            "latency_ms": 40688.7,
+            "llm_verdict": "ESCALATE_TO_HUMAN",
+            "llm_primary_clause": "Section 5.01(b)"
+          },
+          {
+            "node": "Node 4: Grounding & Asymmetric Safety Critic",
+            "latency_ms": 0.04,
+            "final_verdict": "ESCALATE_TO_HUMAN",
+            "final_primary_clause": "Section 5.01(b)",
+            "critic_intervened": false,
+            "char_span": "5424..5675"
+          }
+        ],
+        "retrieved_clauses": [
+          {
+            "clause_id": "Section 5.01",
+            "title": "Thermal Coal & Controversial Weapons Exclusions",
+            "article_header": "ARTICLE V \u2014 ESG, SANCTIONS & RESTRICTED ACTIVITIES",
+            "text": "* **Section 5.01 (Thermal Coal & Controversial Weapons Exclusions):**\n  * **(a) Hard Revenue Threshold:** The Fund shall not purchase securities of any issuer that derives **more than 10.00% of its gross annual revenue** directly from thermal coal extraction (`thermal_coal_revenue_pct > 10.0`).\n  * **(b) Qualitative Infrastructure Ambiguity Clause:** The Fund shall also avoid issuers that are *\"substantially dependent on dedicated thermal coal transport or captive coal-fired logistics infrastructure,\"* as determined by the Compliance Committee upon review of underlying freight revenue disclosures.",
+            "char_start": 5071,
+            "char_end": 5675,
+            "bm25_score": 68.9636,
+            "tfidf_cosine_score": 0.4776,
+            "hybrid_score": 49.7074,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 3.01",
+            "title": "Single-Issuer Concentration Limit",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issuer to exceed **5.00% of total Fund NAV** on a post-trade basis.\n  * **(b) Affiliated Group Limit:** Pursuant to Section 1.04, the **5.00% of total Fund NAV** limit applies to the combined market value of all securities sharing the same `ultimate_parent_id`.",
+            "char_start": 2894,
+            "char_end": 3310,
+            "bm25_score": 21.1927,
+            "tfidf_cosine_score": 0.139,
+            "hybrid_score": 15.2519,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.04",
+            "title": "\"Single-Issuer Group\" / Parent-Subsidiary Aggregation",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.04 (\"Single-Issuer Group\" / Parent-Subsidiary Aggregation):** For all concentration limits under Article III, holdings issued by a parent corporation and all of its majority-owned subsidiaries or guaranteed affiliates (sharing the same `ultimate_parent_id` in the Fund's security master) **must be aggregated and treated as a single issuer**.",
+            "char_start": 1182,
+            "char_end": 1538,
+            "bm25_score": 19.4816,
+            "tfidf_cosine_score": 0.1096,
+            "hybrid_score": 13.9659,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 2.02",
+            "title": "Split-Rated Securities Rule",
+            "article_header": "ARTICLE II \u2014 CREDIT QUALITY & SPLIT-RATING RULES",
+            "text": "* **Section 2.02 (Split-Rated Securities Rule):**\n  * **(a)** If a security is rated by both S&P and Moody's and both ratings fall within Investment Grade, it is classified as Investment Grade.\n  * **(b)** If a security is **split-rated** between S&P and Moody's (where one agency assigns an Investment Grade rating of `BBB-`/`Baa3` or higher, and the other agency assigns a High Yield rating of `BB+`/`Ba1` or lower), **the higher of the two ratings shall govern** for purposes of determining whether the security counts as Investment Grade under Section 2.01 and Section 3.02.\n  * **(c)** Notwithstanding Section 2.02(b), any security rated `CCC+` / `Caa1` or lower by *any* rating agency is strictly prohibited from purchase.",
+            "char_start": 2110,
+            "char_end": 2838,
+            "bm25_score": 10.9553,
+            "tfidf_cosine_score": 0.0705,
+            "hybrid_score": 7.8802,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 2.01",
+            "title": "Aggregate High-Yield Ceiling",
+            "article_header": "ARTICLE II \u2014 CREDIT QUALITY & SPLIT-RATING RULES",
+            "text": "* **Section 2.01 (Aggregate High-Yield Ceiling):** The Fund may invest no more than **15.00% of its total NAV** in aggregate across all High Yield (Below-Investment-Grade) debt securities.",
+            "char_start": 1921,
+            "char_end": 2109,
+            "bm25_score": 0.0,
+            "tfidf_cosine_score": 0.0,
+            "hybrid_score": 0.0,
+            "retrieval_reason": "CROSS_REF_EXPANSION (from Section 2.02)"
+          },
+          {
+            "clause_id": "Section 3.02",
+            "title": "Sector & High-Yield Sub-Limits",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.02 (Sector & High-Yield Sub-Limits):**\n  * **(a) Broad Sector Limit:** No single GICS sector may exceed **25.00% of total Fund NAV**.\n  * **(b) High-Yield Energy Sub-Cap:** Aggregate holdings in **High Yield (Below-Investment-Grade) issuers within the `Energy` sector** shall not exceed **5.00% of total Fund NAV** on a post-trade basis.",
+            "char_start": 3311,
+            "char_end": 3662,
+            "bm25_score": 0.0,
+            "tfidf_cosine_score": 0.0,
+            "hybrid_score": 0.0,
+            "retrieval_reason": "CROSS_REF_EXPANSION (from Section 2.02)"
+          }
+        ],
+        "deterministic_bundle": {
+          "trade_id": "TRD-2026-009",
+          "total_nav_usd": 100000000.0,
+          "overall_deterministic_status": "ESCALATE_TO_HUMAN",
+          "triggered_breach_clauses": [],
+          "triggered_escalation_clauses": [
+            "Section 5.01(b)"
+          ],
+          "rule_checks": [
+            {
+              "rule_id": "RULE-301A-ISSUER",
+              "rule_name": "Direct Single-Issuer Concentration Limit",
+              "clause_citation": "Section 3.01(a)",
+              "pre_trade_metric": "$0 (0.00% NAV)",
+              "post_trade_metric": "$1,000,000 (1.00% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Direct exposure to Heartland Rail & Bulk Logistics Corp (ISS-HRBL) moves from 0.00% to 1.00% of NAV (Limit: 5.00%)."
+            },
+            {
+              "rule_id": "RULE-301B-PARENT",
+              "rule_name": "Single-Issuer Group (Parent-Subsidiary) Aggregation Limit",
+              "clause_citation": "Section 3.01(b)",
+              "pre_trade_metric": "$0 (0.00% NAV)",
+              "post_trade_metric": "$1,000,000 (1.00% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Aggregated group exposure under ultimate_parent_id=PAR-HRBL (Heartland Rail & Bulk Logistics Corp) moves from 0.00% to 1.00% of NAV per Section 1.04 & Section 3.01(b)."
+            },
+            {
+              "rule_id": "RULE-201-HY",
+              "rule_name": "Credit Quality & Aggregate High-Yield Ceiling",
+              "clause_citation": "Section 2.01",
+              "pre_trade_metric": "$14,200,000 (14.20% NAV)",
+              "post_trade_metric": "$14,200,000 (14.20% NAV)",
+              "threshold_limit": "<= 15.00% NAV (Higher split rating governs per Sec 2.02(b))",
+              "status": "PASS",
+              "deterministic_explanation": "Both agencies rate Investment Grade (S&P BBB+, Moody's Baa1) per Section 2.02(a). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%)."
+            },
+            {
+              "rule_id": "RULE-302B-HY-ENERGY",
+              "rule_name": "High-Yield Energy Sector Sub-Cap",
+              "clause_citation": "Section 3.02(b)",
+              "pre_trade_metric": "$4,500,000 (4.50% NAV)",
+              "post_trade_metric": "$4,500,000 (4.50% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "High-Yield Energy exposure moves from 4.50% to 4.50% of NAV (Sub-Cap Limit: 5.00% under Section 3.02(b))."
+            },
+            {
+              "rule_id": "RULE-401-FX",
+              "rule_name": "Foreign Currency Hedging & OECD Sovereign Exception",
+              "clause_citation": "Section 4.01(a)",
+              "pre_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "post_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "threshold_limit": "100% Hedged (Corporate) OR <= 10.00% NAV Unhedged OECD Sovereign",
+              "status": "PASS",
+              "deterministic_explanation": "Security is USD-denominated; complies with Section 4.01(a)."
+            },
+            {
+              "rule_id": "RULE-501-502-ESG-SPV",
+              "rule_name": "ESG Thermal Coal & Sanctions Look-Through Gate",
+              "clause_citation": "Section 5.01(b)",
+              "pre_trade_metric": "Direct Coal Rev: 4.2%",
+              "post_trade_metric": "Asset Class: CORPORATE_BOND",
+              "threshold_limit": "Coal <= 10.0% & Full Look-Through Transparency",
+              "status": "ESCALATE_TO_HUMAN",
+              "deterministic_explanation": "Direct coal extraction revenue is 4.2% (<= 10.0% hard limit), but prospectus notes disclose undisclosed mixed bulk mineral/coal rail freight exposure. Triggers qualitative 'substantially dependent on thermal coal transport infrastructure' clause under Section 5.01(b) requiring Compliance Committee sign-off."
+            }
+          ],
+          "pruned_schema_summary": {
+            "target_issuer_pre_trade_usd": 0,
+            "target_parent_group_pre_trade_usd": 0,
+            "aggregate_high_yield_pre_trade_usd": 14200000.0,
+            "high_yield_energy_pre_trade_usd": 4500000.0,
+            "unhedged_oecd_sovereign_pre_trade_usd": 7500000.0,
+            "credit_classification_by_rule_202": "INVESTMENT_GRADE"
+          },
+          "token_budget_stats": {
+            "unpruned_75k_holdings_estimated_tokens": 3600000,
+            "schema_pruned_slice_tokens": 240,
+            "token_reduction_pct": 99.9933,
+            "excluded_sensitive_columns": [
+              "custodian_account_number",
+              "prime_broker_Clearance_code",
+              "trader_desk_internal_notes",
+              "fix_protocol_raw_payload",
+              "settlement_wire_aba_routing"
+            ]
+          }
+        },
+        "llm_raw_output": {
+          "llm_verdict": "ESCALATE_TO_HUMAN",
+          "naive_single_prompt_verdict_without_rules_engine": "PASS",
+          "naive_single_prompt_flaw": "A naive LLM without the rules engine could incorrectly output PASS by focusing only on the 4.2% direct coal revenue being under the 10% limit, failing to recognize the qualitative ambiguity of the undisclosed 22% coal freight transport revenue under Section 5.01(b) which requires human escalation.",
+          "primary_clause": "Section 5.01(b)",
+          "verbatim_quote": "The Fund shall also avoid issuers that are *\"substantially dependent on dedicated thermal coal transport or captive coal-fired logistics infrastructure,\"* as determined by the Compliance Committee upon review of underlying freight revenue disclosures.",
+          "qualitative_ambiguity_detected": true,
+          "semantic_analysis": "The deterministic engine confirms that the direct thermal coal revenue of 4.2% is within the 10.00% hard limit under Section 5.01(a), but the 22.0% bulk rail freight revenue with an undisclosed coal split triggers the qualitative look-through under Section 5.01(b). Consequently, because the prospectus notes reveal an ambiguity regarding dependence on dedicated thermal coal transport infrastructure, the trade must be escalated to the Compliance Committee for a final determination."
+        },
+        "llm_model_used": "dots-studio/dots-3-note-preview:free",
+        "llm_latency_ms": 40688.7,
+        "naive_llm_verdict": "PASS",
+        "naive_llm_rationale": "A naive LLM without the rules engine could incorrectly output PASS by focusing only on the 4.2% direct coal revenue being under the 10% limit, failing to recognize the qualitative ambiguity of the undisclosed 22% coal freight transport revenue under Section 5.01(b) which requires human escalation.",
+        "critic_verification": {
+          "verbatim_quote_verified": true,
+          "fallback_grounding_applied": false,
+          "verified_char_start": 5424,
+          "verified_char_end": 5675,
+          "verified_quote_snippet": "The Fund shall also avoid issuers that are *\"substantially dependent on dedicated thermal coal transport or captive coal-fired logistics infrastructure,\"* as determined by the Compliance Committee upon review of underlying freight revenue disclosures.",
+          "critic_intervened": false,
+          "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+          "llm_raw_verdict": "ESCALATE_TO_HUMAN",
+          "deterministic_status": "ESCALATE_TO_HUMAN"
+        },
+        "final_verdict": "ESCALATE_TO_HUMAN",
+        "final_primary_clause": "Section 5.01(b)",
+        "final_audit_rationale": "[Section 5.01(b) -> ESCALATE_TO_HUMAN] Direct coal extraction revenue is 4.2% (<= 10.0% hard limit), but prospectus notes disclose undisclosed mixed bulk mineral/coal rail freight exposure. Triggers qualitative 'substantially dependent on thermal coal transport infrastructure' clause under Section 5.01(b) requiring Compliance Committee sign-off. || LLM Semantic Note: The deterministic engine confirms that the direct thermal coal revenue of 4.2% is within the 10.00% hard limit under Section 5.01(a), but the 22.0% bulk rail freight revenue with an undisclosed coal split triggers the qualitative look-through under Section 5.01(b). Consequently, because the prospectus notes reveal an ambiguity regarding dependence on dedicated thermal coal transport infrastructure, the trade must be escalated to the Compliance Committee for a final determination. || Source Provenance: IPS-APEX-2026-V4 [Section 5.01(b), chars 5424..5675]",
+        "human_review_required": true
+      }
+    },
+    {
+      "test_id": "TC-10",
+      "title": "[Edge Case / AI Failure Mode 2] Orphan SPV Credit-Linked Note Look-Through Blindspot",
+      "description": "Purchase of $1.50M Cayman Emerald Trust 2026-1 Credit-Linked Note (STRUCTURED_NOTE_SPV). Structured columns show Cayman/OECD-compliant trustee and 0% parent concentration, but prospectus text reveals the note references a basket of third-party emerging market sovereign & energy credits.",
+      "expected_verdict": "ESCALATE_TO_HUMAN",
+      "expected_primary_clause": "Section 5.02",
+      "ground_truth_rationale": "Under Section 5.02, pass-through SPVs and Credit-Linked Notes without transparent look-through reference data in the security master cannot be auto-approved by structured column checks alone and must be escalated to Human Compliance Review.",
+      "naive_single_llm_verdict": "PASS",
+      "naive_single_llm_reason": "FALSE NEGATIVE: Sees A-/A3 rated USD note with 0% parent concentration and auto-approves without Section 5.02 SPV swap basket look-through escalation. (LLM Note: A naive LLM would miss the SPV look\u2011through opacity and treat the structured note as a regular investment, incorrectly approving the trade despite the mandatory human review requirement.)",
+      "naive_single_llm_correct": false,
+      "node3_raw_llm_verdict": "ESCALATE_TO_HUMAN",
+      "node3_raw_llm_correct": true,
+      "hybrid_final_verdict": "ESCALATE_TO_HUMAN",
+      "hybrid_final_clause": "Section 5.02",
+      "hybrid_correct": true,
+      "critic_intervened": false,
+      "critic_intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+      "verbatim_quote_verified": true,
+      "fallback_grounding_applied": false,
+      "verified_char_span": "5969..6033",
+      "verified_quote_snippet": "Where a security is issued by a pass-through SPV or orphan trust without transparent look-through reference data in the security master, automated systems must abstain and escalate to Human Compliance Review prior to execution.",
+      "llm_model_used": "cohere/north-mini-code:free",
+      "llm_latency_ms": 17422.8,
+      "full_state": {
+        "test_id": "TC-10",
+        "proposed_trade": {
+          "trade_id": "TRD-2026-010",
+          "action": "BUY",
+          "issuer_id": "ISS-CET-SPV",
+          "issuer_name": "Cayman Emerald Repackaging Trust 2026-1",
+          "ultimate_parent_id": "PAR-CET-ORPHAN",
+          "ultimate_parent_name": "Cayman Emerald Charitable Trust (Orphan SPV)",
+          "asset_class": "STRUCTURED_NOTE_SPV",
+          "gics_sector": "Financials",
+          "rating_sp": "A-",
+          "rating_moodys": "A3",
+          "currency": "USD",
+          "is_fx_hedged": true,
+          "is_oecd_country": true,
+          "thermal_coal_revenue_pct": 0.0,
+          "trade_amount_usd": 1500000.0,
+          "prospectus_supplement_notes": "Series 2026-1 Credit-Linked Notes issued by an orphan Cayman SPV. Principal repayment is synthetically linked via total return swap to an undisclosed reference basket of Eurasian oil & gas transport entities."
+        },
+        "trace_log": [
+          {
+            "node": "Node 1: Hybrid BM25 + Cross-Ref Retriever",
+            "latency_ms": 1.46,
+            "clauses_retrieved": [
+              "Section 5.02",
+              "Section 3.01",
+              "Section 1.04",
+              "Section 3.02"
+            ],
+            "top_hybrid_score": 32.4515
+          },
+          {
+            "node": "Node 2: Schema-Pruned Deterministic Calculator",
+            "latency_ms": 8.5,
+            "deterministic_status": "ESCALATE_TO_HUMAN",
+            "breach_clauses": [],
+            "escalation_clauses": [
+              "Section 5.02"
+            ],
+            "token_reduction_pct": 99.9933
+          },
+          {
+            "node": "Node 3: OpenRouter LLM Semantic & Ambiguity Analyzer",
+            "model": "cohere/north-mini-code:free",
+            "latency_ms": 17422.8,
+            "llm_verdict": "ESCALATE_TO_HUMAN",
+            "llm_primary_clause": "Section 5.02"
+          },
+          {
+            "node": "Node 4: Grounding & Asymmetric Safety Critic",
+            "latency_ms": 0.91,
+            "final_verdict": "ESCALATE_TO_HUMAN",
+            "final_primary_clause": "Section 5.02",
+            "critic_intervened": false,
+            "char_span": "5969..6033"
+          }
+        ],
+        "retrieved_clauses": [
+          {
+            "clause_id": "Section 5.02",
+            "title": "Sanctions & Look-Through Obligation",
+            "article_header": "ARTICLE V \u2014 ESG, SANCTIONS & RESTRICTED ACTIVITIES",
+            "text": "* **Section 5.02 (Sanctions & Look-Through Obligation):**\n  * The Fund is strictly prohibited from acquiring direct or indirect economic exposure (including via Special Purpose Vehicles (`SPVs`), Credit-Linked Notes (`CLNs`), or total return swaps) to any entity subject to OFAC/EU sanctions. Where a security is issued by a pass-through SPV or orphan trust without transparent look-through reference data in the security master, automated systems **must abstain and escalate to Human Compliance Review** prior to execution.",
+            "char_start": 5676,
+            "char_end": 6200,
+            "bm25_score": 44.8214,
+            "tfidf_cosine_score": 0.3589,
+            "hybrid_score": 32.4515,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 3.01",
+            "title": "Single-Issuer Concentration Limit",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.01 (Single-Issuer Concentration Limit):**\n  * **(a) Standard Limit:** No proposed purchase may cause the Fund's total exposure to any single issuer to exceed **5.00% of total Fund NAV** on a post-trade basis.\n  * **(b) Affiliated Group Limit:** Pursuant to Section 1.04, the **5.00% of total Fund NAV** limit applies to the combined market value of all securities sharing the same `ultimate_parent_id`.",
+            "char_start": 2894,
+            "char_end": 3310,
+            "bm25_score": 20.2061,
+            "tfidf_cosine_score": 0.1691,
+            "hybrid_score": 14.6517,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 1.04",
+            "title": "\"Single-Issuer Group\" / Parent-Subsidiary Aggregation",
+            "article_header": "ARTICLE I \u2014 DEFINITIONS & INTERPRETIVE RULES",
+            "text": "* **Section 1.04 (\"Single-Issuer Group\" / Parent-Subsidiary Aggregation):** For all concentration limits under Article III, holdings issued by a parent corporation and all of its majority-owned subsidiaries or guaranteed affiliates (sharing the same `ultimate_parent_id` in the Fund's security master) **must be aggregated and treated as a single issuer**.",
+            "char_start": 1182,
+            "char_end": 1538,
+            "bm25_score": 17.984,
+            "tfidf_cosine_score": 0.126,
+            "hybrid_score": 12.9666,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          },
+          {
+            "clause_id": "Section 3.02",
+            "title": "Sector & High-Yield Sub-Limits",
+            "article_header": "ARTICLE III \u2014 CONCENTRATION & SECTOR LIMITS",
+            "text": "* **Section 3.02 (Sector & High-Yield Sub-Limits):**\n  * **(a) Broad Sector Limit:** No single GICS sector may exceed **25.00% of total Fund NAV**.\n  * **(b) High-Yield Energy Sub-Cap:** Aggregate holdings in **High Yield (Below-Investment-Grade) issuers within the `Energy` sector** shall not exceed **5.00% of total Fund NAV** on a post-trade basis.",
+            "char_start": 3311,
+            "char_end": 3662,
+            "bm25_score": 6.2605,
+            "tfidf_cosine_score": 0.034,
+            "hybrid_score": 4.4843,
+            "retrieval_reason": "PRIMARY_HYBRID_MATCH"
+          }
+        ],
+        "deterministic_bundle": {
+          "trade_id": "TRD-2026-010",
+          "total_nav_usd": 100000000.0,
+          "overall_deterministic_status": "ESCALATE_TO_HUMAN",
+          "triggered_breach_clauses": [],
+          "triggered_escalation_clauses": [
+            "Section 5.02"
+          ],
+          "rule_checks": [
+            {
+              "rule_id": "RULE-301A-ISSUER",
+              "rule_name": "Direct Single-Issuer Concentration Limit",
+              "clause_citation": "Section 3.01(a)",
+              "pre_trade_metric": "$0 (0.00% NAV)",
+              "post_trade_metric": "$1,500,000 (1.50% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Direct exposure to Cayman Emerald Repackaging Trust 2026-1 (ISS-CET-SPV) moves from 0.00% to 1.50% of NAV (Limit: 5.00%)."
+            },
+            {
+              "rule_id": "RULE-301B-PARENT",
+              "rule_name": "Single-Issuer Group (Parent-Subsidiary) Aggregation Limit",
+              "clause_citation": "Section 3.01(b)",
+              "pre_trade_metric": "$0 (0.00% NAV)",
+              "post_trade_metric": "$1,500,000 (1.50% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "Aggregated group exposure under ultimate_parent_id=PAR-CET-ORPHAN (Cayman Emerald Charitable Trust (Orphan SPV)) moves from 0.00% to 1.50% of NAV per Section 1.04 & Section 3.01(b)."
+            },
+            {
+              "rule_id": "RULE-201-HY",
+              "rule_name": "Credit Quality & Aggregate High-Yield Ceiling",
+              "clause_citation": "Section 2.01",
+              "pre_trade_metric": "$14,200,000 (14.20% NAV)",
+              "post_trade_metric": "$14,200,000 (14.20% NAV)",
+              "threshold_limit": "<= 15.00% NAV (Higher split rating governs per Sec 2.02(b))",
+              "status": "PASS",
+              "deterministic_explanation": "Both agencies rate Investment Grade (S&P A-, Moody's A3) per Section 2.02(a). Aggregate High-Yield exposure post-trade: 14.20% (Limit: 15.00%)."
+            },
+            {
+              "rule_id": "RULE-302B-HY-ENERGY",
+              "rule_name": "High-Yield Energy Sector Sub-Cap",
+              "clause_citation": "Section 3.02(b)",
+              "pre_trade_metric": "$4,500,000 (4.50% NAV)",
+              "post_trade_metric": "$4,500,000 (4.50% NAV)",
+              "threshold_limit": "<= 5.00% NAV",
+              "status": "PASS",
+              "deterministic_explanation": "High-Yield Energy exposure moves from 4.50% to 4.50% of NAV (Sub-Cap Limit: 5.00% under Section 3.02(b))."
+            },
+            {
+              "rule_id": "RULE-401-FX",
+              "rule_name": "Foreign Currency Hedging & OECD Sovereign Exception",
+              "clause_citation": "Section 4.01(a)",
+              "pre_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "post_trade_metric": "Unhedged Sov: $7,500,000 (7.50% NAV)",
+              "threshold_limit": "100% Hedged (Corporate) OR <= 10.00% NAV Unhedged OECD Sovereign",
+              "status": "PASS",
+              "deterministic_explanation": "Security is USD-denominated; complies with Section 4.01(a)."
+            },
+            {
+              "rule_id": "RULE-501-502-ESG-SPV",
+              "rule_name": "ESG Thermal Coal & Sanctions Look-Through Gate",
+              "clause_citation": "Section 5.02",
+              "pre_trade_metric": "Direct Coal Rev: 0.0%",
+              "post_trade_metric": "Asset Class: STRUCTURED_NOTE_SPV",
+              "threshold_limit": "Coal <= 10.0% & Full Look-Through Transparency",
+              "status": "ESCALATE_TO_HUMAN",
+              "deterministic_explanation": "Instrument is a pass-through SPV / Credit-Linked Note (STRUCTURED_NOTE_SPV) with synthetic swap exposure to an undisclosed underlying reference basket. Section 5.02 requires mandatory abstention and Human Compliance look-through verification."
+            }
+          ],
+          "pruned_schema_summary": {
+            "target_issuer_pre_trade_usd": 0,
+            "target_parent_group_pre_trade_usd": 0,
+            "aggregate_high_yield_pre_trade_usd": 14200000.0,
+            "high_yield_energy_pre_trade_usd": 4500000.0,
+            "unhedged_oecd_sovereign_pre_trade_usd": 7500000.0,
+            "credit_classification_by_rule_202": "INVESTMENT_GRADE"
+          },
+          "token_budget_stats": {
+            "unpruned_75k_holdings_estimated_tokens": 3600000,
+            "schema_pruned_slice_tokens": 240,
+            "token_reduction_pct": 99.9933,
+            "excluded_sensitive_columns": [
+              "custodian_account_number",
+              "prime_broker_Clearance_code",
+              "trader_desk_internal_notes",
+              "fix_protocol_raw_payload",
+              "settlement_wire_aba_routing"
+            ]
+          }
+        },
+        "llm_raw_output": {
+          "llm_verdict": "ESCALATE_TO_HUMAN",
+          "naive_single_prompt_verdict_without_rules_engine": "PASS",
+          "naive_single_prompt_flaw": "A naive LLM would miss the SPV look\u2011through opacity and treat the structured note as a regular investment, incorrectly approving the trade despite the mandatory human review requirement.",
+          "primary_clause": "Section 5.02",
+          "verbatim_quote": "Where a security is issued by a pass-through SPV or orphan trust without transparent look-through reference data in the security master, automated systems must abstain and escalate to Human Compliance Review prior to execution.",
+          "qualitative_ambiguity_detected": true,
+          "semantic_analysis": "Deterministic calculations show all quantitative limits are satisfied (e.g., 1.5% NAV exposure, 14.2% high-yield aggregate, etc.). However, the prospectus supplement reveals an orphan SPV with a synthetic total return swap to an undisclosed reference basket, which under Section 5.02 creates qualitative opacity and mandates human compliance review."
+        },
+        "llm_model_used": "cohere/north-mini-code:free",
+        "llm_latency_ms": 17422.8,
+        "naive_llm_verdict": "PASS",
+        "naive_llm_rationale": "A naive LLM would miss the SPV look\u2011through opacity and treat the structured note as a regular investment, incorrectly approving the trade despite the mandatory human review requirement.",
+        "critic_verification": {
+          "verbatim_quote_verified": true,
+          "fallback_grounding_applied": false,
+          "verified_char_start": 5969,
+          "verified_char_end": 6033,
+          "verified_quote_snippet": "Where a security is issued by a pass-through SPV or orphan trust without transparent look-through reference data in the security master, automated systems must abstain and escalate to Human Compliance Review prior to execution.",
+          "critic_intervened": false,
+          "intervention_reason": "None \u2014 LLM and Deterministic Engine aligned.",
+          "llm_raw_verdict": "ESCALATE_TO_HUMAN",
+          "deterministic_status": "ESCALATE_TO_HUMAN"
+        },
+        "final_verdict": "ESCALATE_TO_HUMAN",
+        "final_primary_clause": "Section 5.02",
+        "final_audit_rationale": "[Section 5.02 -> ESCALATE_TO_HUMAN] Instrument is a pass-through SPV / Credit-Linked Note (STRUCTURED_NOTE_SPV) with synthetic swap exposure to an undisclosed underlying reference basket. Section 5.02 requires mandatory abstention and Human Compliance look-through verification. || LLM Semantic Note: Deterministic calculations show all quantitative limits are satisfied (e.g., 1.5% NAV exposure, 14.2% high-yield aggregate, etc.). However, the prospectus supplement reveals an orphan SPV with a synthetic total return swap to an undisclosed reference basket, which under Section 5.02 creates qualitative opacity and mandates human compliance review. || Source Provenance: IPS-APEX-2026-V4 [Section 5.02, chars 5969..6033]",
+        "human_review_required": true
+      }
+    }
+  ]
+}
