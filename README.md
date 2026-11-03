@@ -89,10 +89,9 @@ python -m streamlit run app.py
 python -m tests.test_compliance_engine
 ```
 
-### Step 4: Run the 10-Case Evaluation Benchmark or Regenerate the 5-Page PDF
+### Step 4: Run the 10-Case Evaluation Benchmark
 ```bash
 python evaluate_10_cases.py
-python generate_brief_pdf.py
 ```
 
 ---
@@ -102,7 +101,6 @@ python generate_brief_pdf.py
 ```text
 ├── app.py                          # Interactive 4-Dashboard Streamlit App (AEGIS + Emil Kowalski Orange Edition)
 ├── evaluate_10_cases.py            # CLI benchmark runner across all 10 trades (works with or without API key)
-├── generate_brief_pdf.py           # ReportLab script generating the 5-Page Written Brief PDF
 ├── TRESATA_WRITTEN_BRIEF.pdf       # Final 5-Page Written Brief (Pages 1-4) + One-Page Appendix (Page 5)
 ├── TRESATA_WRITTEN_BRIEF.md        # Markdown version of the 5-Page Written Brief + Appendix
 ├── DESIGN_SYSTEM.md                # UI/UX Design System specification
